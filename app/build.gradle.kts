@@ -52,6 +52,7 @@ dependencies {
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     implementation("androidx.navigation:navigation-fragment-ktx:2.7.6")
     implementation("androidx.navigation:navigation-ui-ktx:2.7.6")
+    implementation(libs.play.services.location)
 
     val room_version = "2.6.1"
     implementation("androidx.room:room-runtime:$room_version")
@@ -73,4 +74,7 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:32.7.0"))
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-firestore")
+
+    // --- GPS ---
+    implementation("com.google.android.gms:play-services-location:21.0.1")
 }
