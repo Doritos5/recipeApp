@@ -1,4 +1,4 @@
-package com.example.recipeapp.data.users
+package com.example.recipeapp.model.users
 
 import androidx.room.Dao
 import androidx.room.Delete
