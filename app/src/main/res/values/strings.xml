@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">recipeApp</string>
+    <string name="new_recipe">New Recipe</string>
+    <string name="recipe_title">Recipe Title</string>
+    <string name="preparation_instructions">Preparation Instructions</string>
+    <string name="image_url_optional">Image URL (Optional)</string>
+    <string name="cancel">Cancel</string>
+    <string name="save_recipe">Save Recipe</string>
+    <string name="add_recipe">Add Recipe</string>
+    <string name="recipe_instructions_preview">Recipe instructions preview...</string>
 </resources>
