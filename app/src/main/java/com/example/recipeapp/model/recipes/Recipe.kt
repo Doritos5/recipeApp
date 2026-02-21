@@ -25,6 +25,7 @@ data class Recipe(
     val description: String? = "",
     val ingredients: String? = "",
     val authorId: String? = null,
+    val imageRemoteUrl: String? = null,
     val latitude: Double? = 0.0,
     val longitude: Double? = 0.0
 )

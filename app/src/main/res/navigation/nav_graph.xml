@@ -3,8 +3,47 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/recipesListFragment">
+    app:startDestination="@id/loginFragment">
 
+    <!-- Login Screen (Start Destination) -->
+    <fragment
+        android:id="@+id/loginFragment"
+        android:name="com.example.recipeapp.ui.LoginFragment"
+        android:label="Login"
+        tools:layout="@layout/fragment_login">
+
+        <action
+            android:id="@+id/action_login_to_list"
+            app:destination="@id/recipesListFragment"
+            app:popUpTo="@id/loginFragment"
+            app:popUpToInclusive="true" />
+
+        <action
+            android:id="@+id/action_login_to_signUp"
+            app:destination="@id/signUpFragment" />
+    </fragment>
+
+    <!-- Sign Up Screen -->
+    <fragment
+        android:id="@+id/signUpFragment"
+        android:name="com.example.recipeapp.ui.SignUpFragment"
+        android:label="Sign Up"
+        tools:layout="@layout/fragment_sign_up">
+
+        <action
+            android:id="@+id/action_signUp_to_login"
+            app:destination="@id/loginFragment"
+            app:popUpTo="@id/loginFragment"
+            app:popUpToInclusive="true" />
+
+        <action
+            android:id="@+id/action_signUp_to_list"
+            app:destination="@id/recipesListFragment"
+            app:popUpTo="@id/loginFragment"
+            app:popUpToInclusive="true" />
+    </fragment>
+
+    <!-- Recipe List Screen -->
     <fragment
         android:id="@+id/recipesListFragment"
         android:name="com.example.recipeapp.ui.RecipesListFragment"
@@ -16,6 +55,7 @@
             app:destination="@id/addRecipeFragment" />
     </fragment>
 
+    <!-- Add Recipe Screen -->
     <fragment
         android:id="@+id/addRecipeFragment"
         android:name="com.example.recipeapp.ui.AddRecipeFragment"

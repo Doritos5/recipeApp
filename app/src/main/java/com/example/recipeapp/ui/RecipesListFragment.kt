@@ -6,16 +6,18 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.recipeapp.R
 import com.example.recipeapp.RecipeViewModel
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class RecipesListFragment : Fragment() {
 
-    private lateinit var viewModel: RecipeViewModel
+    private val viewModel: RecipeViewModel by activityViewModels()
     private lateinit var recipesAdapter: RecipesAdapter
     private lateinit var recyclerView: RecyclerView
 
@@ -33,24 +35,17 @@ class RecipesListFragment : Fragment() {
         recipesAdapter = RecipesAdapter(emptyList())
         recyclerView.adapter = recipesAdapter
 
-        // 2. Initialize ViewModel
-        viewModel = ViewModelProvider(this)[RecipeViewModel::class.java]
-
-        // 3. Observe LiveData
+        // 2. Observe LiveData (ViewModel injected by Hilt via activityViewModels)
         viewModel.recipes.observe(viewLifecycleOwner) { recipes ->
-            // Update the adapter with the new list from DB
             recipesAdapter.setRecipes(recipes)
-
             Log.d("RECIPE_TEST", "Updated UI with ${recipes.size} recipes")
         }
 
-        // 4. Fetch fresh data
+        // 3. Fetch fresh data
         viewModel.reloadRecipes()
-
 
         val fab: View = view.findViewById(R.id.addRecipeFab)
         fab.setOnClickListener {
-            // The correct way to navigate using the Graph
             findNavController().navigate(R.id.action_list_to_add)
 
         }
