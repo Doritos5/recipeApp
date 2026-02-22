@@ -1,5 +1,6 @@
 package com.example.recipeapp.ui
 
+import android.net.Uri
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -38,13 +39,31 @@ class RecipesAdapter(private var recipes: List<Recipe>) :
         holder.titleTextView.text = recipe.title
         holder.instructionsTextView.text = recipe.instructions ?: "No instructions available"
 
-        // 2. Load Image using Picasso
-        if (!recipe.imageUrl.isNullOrEmpty()) {
-            Picasso.get()
-                .load(recipe.imageUrl)
-                .placeholder(R.drawable.ic_launcher_foreground) // Optional: placeholder while loading
-                .into(holder.imageView)
+        // 2. Cancel any previous Picasso request for this ImageView
+        //    This prevents images from "leaking" into the wrong row when RecyclerView reuses ViewHolders
+        Picasso.get().cancelRequest(holder.imageView)
+
+        // 3. Determine which image URL to display (prefer remote Firebase URL, fallback to local/web URL)
+        val displayImageUrl = recipe.imageRemoteUrl ?: recipe.imageUrl
+
+        if (!displayImageUrl.isNullOrEmpty()) {
+            // Check if this is a local content:// URI (picked from gallery)
+            if (displayImageUrl.startsWith("content://") || displayImageUrl.startsWith("file://")) {
+                Picasso.get()
+                    .load(Uri.parse(displayImageUrl))
+                    .placeholder(R.drawable.ic_launcher_foreground)
+                    .error(R.drawable.ic_launcher_foreground)
+                    .into(holder.imageView)
+            } else {
+                // Remote URL (web or Firebase Storage)
+                Picasso.get()
+                    .load(displayImageUrl)
+                    .placeholder(R.drawable.ic_launcher_foreground)
+                    .error(R.drawable.ic_launcher_foreground)
+                    .into(holder.imageView)
+            }
         } else {
+            // No image at all — set default and clear any lingering Picasso state
             holder.imageView.setImageResource(R.drawable.ic_launcher_foreground)
         }
     }

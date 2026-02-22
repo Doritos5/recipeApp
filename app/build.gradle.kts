@@ -4,7 +4,7 @@ plugins {
     id("com.google.devtools.ksp")
     id("com.google.gms.google-services")
     id("kotlin-kapt")
-
+    id("com.google.dagger.hilt.android")
 }
 
 android {
@@ -74,6 +74,11 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:32.7.0"))
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-firestore")
+    implementation("com.google.firebase:firebase-storage")
+
+    // --- Hilt (Dependency Injection) ---
+    implementation("com.google.dagger:hilt-android:2.51.1")
+    kapt("com.google.dagger:hilt-android-compiler:2.51.1")
 
     // --- GPS ---
     implementation("com.google.android.gms:play-services-location:21.0.1")

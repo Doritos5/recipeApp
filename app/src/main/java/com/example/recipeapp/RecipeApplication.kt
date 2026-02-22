@@ -1,8 +1,7 @@
 package com.example.recipeapp
 
 import android.app.Application
-import com.example.recipeapp.data.AppLocalDb
+import dagger.hilt.android.HiltAndroidApp
 
-class RecipeApplication : Application() {
-    val database: AppLocalDb by lazy { AppLocalDb.getDatabase(this) }
-}
+@HiltAndroidApp
+class RecipeApplication : Application()

@@ -8,4 +8,18 @@
     <string name="save_recipe">Save Recipe</string>
     <string name="add_recipe">Add Recipe</string>
     <string name="recipe_instructions_preview">Recipe instructions preview...</string>
+
+    <!-- Image Picker -->
+    <string name="pick_recipe_photo">Pick Recipe Photo</string>
+    <string name="recipe_image_preview">Recipe image preview</string>
+
+    <!-- Auth -->
+    <string name="login">Login</string>
+    <string name="sign_up">Sign Up</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="logout">Logout</string>
+    <string name="dont_have_account">Don\'t have an account? Sign Up</string>
+    <string name="already_have_account">Already have an account? Login</string>
+    <string name="continue_as_guest">Continue as Guest</string>
 </resources>
