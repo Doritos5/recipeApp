@@ -5,6 +5,7 @@ plugins {
     id("com.google.gms.google-services")
     id("kotlin-kapt")
     id("com.google.dagger.hilt.android")
+    id("androidx.navigation.safeargs.kotlin")
 }
 
 android {
@@ -70,8 +71,8 @@ dependencies {
     // --- Images ---
     implementation("com.squareup.picasso:picasso:2.8")
 
-    // --- Firebase ---
-    implementation(platform("com.google.firebase:firebase-bom:32.7.0"))
+    // --- Firebase (Auth + Firestore + Storage) ---
+    implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-firestore")
     implementation("com.google.firebase:firebase-storage")

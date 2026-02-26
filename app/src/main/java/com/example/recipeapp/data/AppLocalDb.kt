@@ -6,10 +6,12 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.example.recipeapp.model.recipes.Recipe
 import com.example.recipeapp.model.users.User
+import com.example.recipeapp.model.users.UserDao
 
-@Database(entities = [Recipe::class, User::class], version = 2, exportSchema = false)
+@Database(entities = [Recipe::class, User::class], version = 3, exportSchema = false)
 abstract class AppLocalDb : RoomDatabase() {
     abstract fun recipeDao(): RecipeDao
+    abstract fun userDao(): UserDao
 
     companion object {
         @Volatile

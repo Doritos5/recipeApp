@@ -14,8 +14,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.example.recipeapp.R
-import com.example.recipeapp.RecipeViewModel
 import com.example.recipeapp.auth.AuthResult
+import com.example.recipeapp.ui.viewmodel.AuthViewModel
 import com.google.android.material.textfield.TextInputEditText
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -23,7 +23,7 @@ import kotlinx.coroutines.launch
 @AndroidEntryPoint
 class LoginFragment : Fragment() {
 
-    private val viewModel: RecipeViewModel by activityViewModels()
+    private val authViewModel: AuthViewModel by activityViewModels()
 
     private lateinit var emailEt: TextInputEditText
     private lateinit var passwordEt: TextInputEditText
@@ -37,7 +37,7 @@ class LoginFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         // If already logged in, skip to recipe list
-        if (viewModel.isLoggedIn()) {
+        if (authViewModel.isLoggedIn()) {
             findNavController().navigate(R.id.action_login_to_list)
             return null
         }
@@ -66,7 +66,7 @@ class LoginFragment : Fragment() {
 
             progressBar.visibility = View.VISIBLE
             loginBtn.isEnabled = false
-            viewModel.login(email, password)
+            authViewModel.login(email, password)
         }
 
         goToSignUpBtn.setOnClickListener {
@@ -85,19 +85,19 @@ class LoginFragment : Fragment() {
     private fun observeAuthState() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.authState.collect { result ->
+                authViewModel.authState.collect { result ->
                     when (result) {
                         is AuthResult.Success -> {
                             progressBar.visibility = View.GONE
                             loginBtn.isEnabled = true
-                            viewModel.resetAuthState()
+                            authViewModel.resetAuthState()
                             findNavController().navigate(R.id.action_login_to_list)
                         }
                         is AuthResult.Error -> {
                             progressBar.visibility = View.GONE
                             loginBtn.isEnabled = true
                             Toast.makeText(context, result.message, Toast.LENGTH_LONG).show()
-                            viewModel.resetAuthState()
+                            authViewModel.resetAuthState()
                         }
                         null -> {
                             // Idle state — do nothing

@@ -1,7 +1,9 @@
 package com.example.recipeapp.auth
 
+import android.net.Uri
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.UserProfileChangeRequest
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -16,7 +18,7 @@ sealed class AuthResult {
 
 /**
  * UserAuthManager wraps FirebaseAuth and provides suspend functions
- * for Sign Up, Login, Logout, and current user queries.
+ * for Sign Up, Login, Logout, profile updates, and current user queries.
  */
 @Singleton
 class UserAuthManager @Inject constructor(
@@ -31,6 +33,15 @@ class UserAuthManager @Inject constructor(
 
     /** Returns true if a user is currently signed in. */
     fun isLoggedIn(): Boolean = firebaseAuth.currentUser != null
+
+    /** Returns the display name of the current user. */
+    fun getDisplayName(): String? = firebaseAuth.currentUser?.displayName
+
+    /** Returns the email of the current user. */
+    fun getEmail(): String? = firebaseAuth.currentUser?.email
+
+    /** Returns the profile image URL of the current user. */
+    fun getProfileImageUrl(): String? = firebaseAuth.currentUser?.photoUrl?.toString()
 
     /**
      * Creates a new account with email and password.
@@ -66,6 +77,28 @@ class UserAuthManager @Inject constructor(
         } catch (e: Exception) {
             AuthResult.Error(e.message ?: "Login failed.")
         }
+    }
+
+    /**
+     * Updates the current user's display name.
+     */
+    suspend fun updateDisplayName(name: String) {
+        val user = firebaseAuth.currentUser ?: throw IllegalStateException("No user logged in")
+        val profileUpdates = UserProfileChangeRequest.Builder()
+            .setDisplayName(name)
+            .build()
+        user.updateProfile(profileUpdates).await()
+    }
+
+    /**
+     * Updates the current user's profile photo URL.
+     */
+    suspend fun updateProfileImage(photoUrl: String) {
+        val user = firebaseAuth.currentUser ?: throw IllegalStateException("No user logged in")
+        val profileUpdates = UserProfileChangeRequest.Builder()
+            .setPhotoUri(Uri.parse(photoUrl))
+            .build()
+        user.updateProfile(profileUpdates).await()
     }
 
     /**

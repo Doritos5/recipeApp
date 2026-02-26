@@ -24,10 +24,11 @@
         android:textSize="18sp"
         android:textStyle="bold"
         android:layout_marginStart="12dp"
+        android:layout_marginEnd="8dp"
         android:text="Recipe Title"
         app:layout_constraintStart_toEndOf="@id/recipeRowImage"
         app:layout_constraintTop_toTopOf="@id/recipeRowImage"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toStartOf="@id/recipeRowEditBtn" />
 
     <TextView
         android:id="@+id/recipeRowInstructions"
@@ -40,6 +41,33 @@
         android:text="@string/recipe_instructions_preview"
         app:layout_constraintStart_toStartOf="@id/recipeRowTitle"
         app:layout_constraintTop_toBottomOf="@id/recipeRowTitle"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toStartOf="@id/recipeRowEditBtn" />
+
+    <ImageButton
+        android:id="@+id/recipeRowEditBtn"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:src="@android:drawable/ic_menu_edit"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/edit_recipe"
+        android:visibility="gone"
+        app:layout_constraintEnd_toStartOf="@id/recipeRowDeleteBtn"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        tools:visibility="visible" />
+
+    <ImageButton
+        android:id="@+id/recipeRowDeleteBtn"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:src="@android:drawable/ic_menu_delete"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/delete_recipe"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginStart="4dp"
+        tools:visibility="visible" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

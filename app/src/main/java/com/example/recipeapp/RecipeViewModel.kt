@@ -5,7 +5,6 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.recipeapp.auth.AuthResult
 import com.example.recipeapp.auth.UserAuthManager
 import com.example.recipeapp.data.RecipeRepository
 import com.example.recipeapp.model.recipes.Recipe
@@ -26,13 +25,9 @@ class RecipeViewModel @Inject constructor(
     // --- Recipe List (LiveData, observed by RecipesListFragment) ---
     val recipes: LiveData<List<Recipe>> = repository.allRecipes
 
-    // --- Upload State (StateFlow for Add Recipe flow) ---
+    // --- Upload State (StateFlow for Add/Edit Recipe flow) ---
     private val _uploadState = MutableStateFlow<UploadState>(UploadState.Idle)
     val uploadState: StateFlow<UploadState> = _uploadState.asStateFlow()
-
-    // --- Auth State ---
-    private val _authState = MutableStateFlow<AuthResult?>(null)
-    val authState: StateFlow<AuthResult?> = _authState.asStateFlow()
 
     /** Returns the current user's UID or null */
     fun getCurrentUserId(): String? = authManager.getCurrentUserId()
@@ -41,8 +36,22 @@ class RecipeViewModel @Inject constructor(
     fun isLoggedIn(): Boolean = authManager.isLoggedIn()
 
     // ========================
-    // Recipe Operations
+    // Recipe List Operations
     // ========================
+
+    /**
+     * Returns LiveData of recipes for the current user only (My Recipes).
+     */
+    fun getMyRecipes(userId: String): LiveData<List<Recipe>> {
+        return repository.getMyRecipes(userId)
+    }
+
+    /**
+     * Returns LiveData of a single recipe by ID (for Edit screen).
+     */
+    fun getRecipeById(recipeId: String): LiveData<Recipe?> {
+        return repository.getRecipeById(recipeId)
+    }
 
     fun reloadRecipes() {
         viewModelScope.launch {
@@ -51,14 +60,21 @@ class RecipeViewModel @Inject constructor(
     }
 
     /**
+     * Refreshes only the current user's recipes from Firestore.
+     */
+    fun reloadMyRecipes(userId: String) {
+        viewModelScope.launch {
+            repository.refreshMyRecipes(userId)
+        }
+    }
+
+    // ========================
+    // Add Recipe
+    // ========================
+
+    /**
      * Add a new recipe with optional image upload.
      * Updates [uploadState] to Loading → Success/Error.
-     *
-     * Room DB is updated ONLY after Firebase metadata is successfully created.
-     *
-     * @param recipe The recipe to save (id should already be generated).
-     * @param imageUri Optional URI of the selected/captured image.
-     * @param context Android context for image compression.
      */
     fun addNewRecipe(recipe: Recipe, imageUri: Uri?, context: android.content.Context) {
         val userId = authManager.getCurrentUserId()
@@ -67,7 +83,6 @@ class RecipeViewModel @Inject constructor(
             _uploadState.value = UploadState.Loading
             try {
                 if (userId != null) {
-                    // User is logged in → full flow: upload image + Firestore + Room
                     val savedRecipe = repository.addRecipeWithImage(
                         recipe = recipe,
                         imageUri = imageUri,
@@ -76,8 +91,6 @@ class RecipeViewModel @Inject constructor(
                     )
                     _uploadState.value = UploadState.Success(savedRecipe)
                 } else {
-                    // User is NOT logged in → save locally only (no Firebase)
-                    // The recipe already has imageUrl set (local URI or web URL) from the fragment
                     val localRecipe = recipe.copy(authorId = "local_user")
                     repository.addLocal(localRecipe)
                     _uploadState.value = UploadState.Success(localRecipe)
@@ -86,6 +99,56 @@ class RecipeViewModel @Inject constructor(
             } catch (e: Exception) {
                 _uploadState.value = UploadState.Error(e.message ?: "Failed to save recipe.")
                 Log.e("RECIPE_TEST", "Error adding recipe: ${e.message}")
+            }
+        }
+    }
+
+    // ========================
+    // Update Recipe
+    // ========================
+
+    /**
+     * Update an existing recipe with optional new image upload.
+     * Updates [uploadState] to Loading → Success/Error.
+     */
+    fun updateRecipe(recipe: Recipe, imageUri: Uri?, context: android.content.Context) {
+        val userId = authManager.getCurrentUserId()
+
+        viewModelScope.launch {
+            _uploadState.value = UploadState.Loading
+            try {
+                if (userId != null) {
+                    val updatedRecipe = repository.updateRecipeWithImage(
+                        recipe = recipe,
+                        imageUri = imageUri,
+                        userId = userId,
+                        context = context
+                    )
+                    _uploadState.value = UploadState.Success(updatedRecipe)
+                } else {
+                    val localRecipe = recipe.copy(authorId = "local_user")
+                    repository.addLocal(localRecipe) // insert with REPLACE
+                    _uploadState.value = UploadState.Success(localRecipe)
+                }
+                Log.d("RECIPE_TEST", "Recipe updated successfully: ${recipe.title}")
+            } catch (e: Exception) {
+                _uploadState.value = UploadState.Error(e.message ?: "Failed to update recipe.")
+                Log.e("RECIPE_TEST", "Error updating recipe: ${e.message}")
+            }
+        }
+    }
+
+    // ========================
+    // Delete Recipe
+    // ========================
+
+    fun deleteRecipe(recipe: Recipe) {
+        viewModelScope.launch {
+            try {
+                repository.delete(recipe)
+                Log.d("RECIPE_TEST", "Recipe deleted: ${recipe.title}")
+            } catch (e: Exception) {
+                Log.e("RECIPE_TEST", "Error deleting recipe: ${e.message}")
             }
         }
     }
@@ -100,45 +163,8 @@ class RecipeViewModel @Inject constructor(
         }
     }
 
-    fun deleteRecipe(recipe: Recipe) {
-        viewModelScope.launch {
-            repository.delete(recipe)
-            Log.d("RECIPE_TEST", "Recipe deleted: ${recipe.title}")
-        }
-    }
-
     /** Resets the upload state back to Idle (call after handling Success/Error in UI). */
     fun resetUploadState() {
         _uploadState.value = UploadState.Idle
-    }
-
-    // ========================
-    // Auth Operations
-    // ========================
-
-    fun signUp(email: String, password: String) {
-        viewModelScope.launch {
-            _authState.value = null // reset
-            val result = authManager.signUp(email, password)
-            _authState.value = result
-        }
-    }
-
-    fun login(email: String, password: String) {
-        viewModelScope.launch {
-            _authState.value = null // reset
-            val result = authManager.login(email, password)
-            _authState.value = result
-        }
-    }
-
-    fun logout() {
-        authManager.logout()
-        _authState.value = null
-    }
-
-    /** Resets the auth state (call after handling the result in UI). */
-    fun resetAuthState() {
-        _authState.value = null
     }
 }

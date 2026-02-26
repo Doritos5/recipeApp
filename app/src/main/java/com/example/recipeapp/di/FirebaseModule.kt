@@ -3,6 +3,7 @@ package com.example.recipeapp.di
 import android.content.Context
 import com.example.recipeapp.data.AppLocalDb
 import com.example.recipeapp.data.RecipeDao
+import com.example.recipeapp.model.users.UserDao
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
@@ -42,6 +43,12 @@ object FirebaseModule {
     @Singleton
     fun provideRecipeDao(database: AppLocalDb): RecipeDao {
         return database.recipeDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideUserDao(database: AppLocalDb): UserDao {
+        return database.userDao()
     }
 }
 
