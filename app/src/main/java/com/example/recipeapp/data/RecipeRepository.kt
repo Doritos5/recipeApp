@@ -23,6 +23,29 @@ class RecipeRepository @Inject constructor(
     val allRecipes: LiveData<List<Recipe>> = recipeDao.getAllRecipes()
 
     /**
+     * Returns LiveData of recipes created by a specific user (for My Recipes screen).
+     */
+    fun getMyRecipes(userId: String): LiveData<List<Recipe>> {
+        return recipeDao.getRecipesByAuthor(userId)
+    }
+
+    /**
+     * Returns LiveData of a single recipe by ID.
+     */
+    fun getRecipeById(recipeId: String): LiveData<Recipe?> {
+        return recipeDao.getRecipeById(recipeId)
+    }
+
+    /**
+     * Returns a single recipe by ID (suspend, non-LiveData).
+     */
+    suspend fun getRecipeByIdOnce(recipeId: String): Recipe? {
+        return withContext(Dispatchers.IO) {
+            recipeDao.getRecipeByIdOnce(recipeId)
+        }
+    }
+
+    /**
      * Refreshes the local Room cache from both the public API and Firebase Firestore.
      */
     suspend fun refreshRecipes() {
@@ -62,21 +85,31 @@ class RecipeRepository @Inject constructor(
     }
 
     /**
-     * Adds a new recipe WITH an optional image upload.
-     *
-     * Flow:
-     * 1. If imageUri is provided → compress & upload to Firebase Storage → get download URL.
-     * 2. Save the recipe (with userId and imageRemoteUrl) to Firebase Firestore.
-     * 3. ONLY after Firebase succeeds → save to local Room DB.
-     *
-     * This ensures the local DB is updated only after a successful Firebase metadata reference.
-     *
-     * @param recipe The recipe to save.
-     * @param imageUri Optional local URI of the recipe photo.
-     * @param userId The current user's UID.
-     * @param context Android context, needed for image compression.
-     * @return The final Recipe object (with remote URL and userId set).
-     * @throws Exception if any Firebase operation fails — Room will NOT be updated.
+     * Refreshes only the current user's recipes from Firestore into Room.
+     * Uses data isolation: whereEqualTo("authorId", userId).
+     */
+    suspend fun refreshMyRecipes(userId: String) {
+        withContext(Dispatchers.IO) {
+            try {
+                val snapshot = firestore.collection("recipes")
+                    .whereEqualTo("authorId", userId)
+                    .get()
+                    .await()
+                val firebaseList = snapshot.toObjects(Recipe::class.java)
+                if (firebaseList.isNotEmpty()) {
+                    recipeDao.insertAll(firebaseList)
+                }
+                Log.d("RECIPE_TEST", "Refreshed ${firebaseList.size} recipes for user $userId")
+            } catch (e: Exception) {
+                Log.e("RECIPE_TEST", "Error refreshing my recipes: ${e.message}")
+            }
+        }
+    }
+
+    /**
+     * Adds a new recipe WITH an optional image.
+     * Image is saved locally (file:// URI stored in imageUrl).
+     * Recipe is saved to both Room and Firestore.
      */
     suspend fun addRecipeWithImage(
         recipe: Recipe,
@@ -85,23 +118,20 @@ class RecipeRepository @Inject constructor(
         context: Context
     ): Recipe {
         return withContext(Dispatchers.IO) {
-            // Step 1: Upload image to Firebase Storage (if provided)
-            var remoteImageUrl: String? = null
-            if (imageUri != null) {
-                try {
-                    remoteImageUrl = storageService.uploadRecipeImage(context, imageUri, userId)
-                } catch (e: Exception) {
-                    Log.e("RECIPE_TEST", "Image upload failed (skipped): ${e.message}")
-                }
-            }
+            // TODO: Upload image to Firebase Storage when Blaze plan is enabled:
+            //  var remoteImageUrl: String? = null
+            //  if (imageUri != null) {
+            //      remoteImageUrl = storageService.uploadRecipeImage(context, imageUri, userId)
+            //  }
+            // Then set imageRemoteUrl = remoteImageUrl in the recipe copy below.
 
-            // Step 2: Create the final recipe with userId and remote image URL
+            // Create the final recipe with userId and local image URI
             val finalRecipe = recipe.copy(
                 authorId = userId,
-                imageRemoteUrl = remoteImageUrl
+                imageRemoteUrl = null  // TODO: set to remoteImageUrl once Firebase Storage is active
             )
 
-            // Step 3: Try to save to Firebase Firestore
+            // Try to save to Firebase Firestore
             try {
                 firestore.collection("recipes")
                     .document(finalRecipe.id)
@@ -112,11 +142,54 @@ class RecipeRepository @Inject constructor(
                 Log.e("RECIPE_TEST", "Firebase save failed (saving locally only): ${e.message}")
             }
 
-            // Step 4: Always save to local Room DB
+            // Always save to local Room DB
             recipeDao.insert(finalRecipe)
             Log.d("RECIPE_TEST", "Recipe saved to local DB: ${finalRecipe.title}")
 
             finalRecipe
+        }
+    }
+
+    /**
+     * Updates an existing recipe with optional new image.
+     * Image is saved locally (file:// URI stored in imageUrl).
+     */
+    suspend fun updateRecipeWithImage(
+        recipe: Recipe,
+        imageUri: Uri?,
+        userId: String,
+        context: Context
+    ): Recipe {
+        return withContext(Dispatchers.IO) {
+            // TODO: Upload new image to Firebase Storage when Blaze plan is enabled:
+            //  var remoteImageUrl: String? = recipe.imageRemoteUrl
+            //  if (imageUri != null) {
+            //      remoteImageUrl = storageService.uploadRecipeImage(context, imageUri, userId)
+            //  }
+            // Then set imageRemoteUrl = remoteImageUrl in the recipe copy below.
+
+            // Create updated recipe
+            val updatedRecipe = recipe.copy(
+                authorId = userId
+                // TODO: add imageRemoteUrl = remoteImageUrl once Firebase Storage is active
+            )
+
+            // Update in Firebase Firestore
+            try {
+                firestore.collection("recipes")
+                    .document(updatedRecipe.id)
+                    .set(updatedRecipe)
+                    .await()
+                Log.d("RECIPE_TEST", "Recipe updated in Firebase successfully!")
+            } catch (e: Exception) {
+                Log.e("RECIPE_TEST", "Firebase update failed (updating locally only): ${e.message}")
+            }
+
+            // Update in local Room DB
+            recipeDao.update(updatedRecipe)
+            Log.d("RECIPE_TEST", "Recipe updated in local DB: ${updatedRecipe.title}")
+
+            updatedRecipe
         }
     }
 
@@ -151,12 +224,20 @@ class RecipeRepository @Inject constructor(
      * Delete a recipe from both local Room DB and Firebase Firestore.
      */
     suspend fun delete(recipe: Recipe) {
-        recipeDao.delete(recipe)
-        try {
-            firestore.collection("recipes").document(recipe.id).delete().await()
-            Log.d("RECIPE_TEST", "Recipe deleted from Firebase")
-        } catch (e: Exception) {
-            Log.e("RECIPE_TEST", "Failed to delete from Firebase: ${e.message}")
+        withContext(Dispatchers.IO) {
+            // Delete from local Room DB by ID (safer than entity match)
+            recipeDao.deleteById(recipe.id)
+            Log.d("RECIPE_TEST", "Recipe deleted from local DB: ${recipe.id}")
+
+            // Delete from Firebase Firestore (only if id is valid)
+            if (recipe.id.isNotEmpty()) {
+                try {
+                    firestore.collection("recipes").document(recipe.id).delete().await()
+                    Log.d("RECIPE_TEST", "Recipe deleted from Firebase")
+                } catch (e: Exception) {
+                    Log.e("RECIPE_TEST", "Failed to delete from Firebase: ${e.message}")
+                }
+            }
         }
     }
 }

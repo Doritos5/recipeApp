@@ -43,11 +43,11 @@
             app:popUpToInclusive="true" />
     </fragment>
 
-    <!-- Recipe List Screen -->
+    <!-- Recipe List Screen (All Recipes — Tab 1) -->
     <fragment
         android:id="@+id/recipesListFragment"
         android:name="com.example.recipeapp.ui.RecipesListFragment"
-        android:label="RecipesListFragment"
+        android:label="All Recipes"
         tools:layout="@layout/fragment_recipes_list">
 
         <action
@@ -55,11 +55,46 @@
             app:destination="@id/addRecipeFragment" />
     </fragment>
 
+    <!-- My Recipes Screen (Tab 2) -->
+    <fragment
+        android:id="@+id/myRecipesFragment"
+        android:name="com.example.recipeapp.ui.MyRecipesFragment"
+        android:label="My Recipes"
+        tools:layout="@layout/fragment_my_recipes">
+
+        <action
+            android:id="@+id/action_myRecipes_to_editRecipe"
+            app:destination="@id/editRecipeFragment" />
+
+        <action
+            android:id="@+id/action_myRecipes_to_add"
+            app:destination="@id/addRecipeFragment" />
+    </fragment>
+
+    <!-- Profile Screen (Tab 3) -->
+    <fragment
+        android:id="@+id/profileFragment"
+        android:name="com.example.recipeapp.ui.ProfileFragment"
+        android:label="Profile"
+        tools:layout="@layout/fragment_profile" />
+
     <!-- Add Recipe Screen -->
     <fragment
         android:id="@+id/addRecipeFragment"
         android:name="com.example.recipeapp.ui.AddRecipeFragment"
         android:label="Add Recipe"
         tools:layout="@layout/fragment_add_recipe" />
+
+    <!-- Edit Recipe Screen (receives recipeId via SafeArgs) -->
+    <fragment
+        android:id="@+id/editRecipeFragment"
+        android:name="com.example.recipeapp.ui.EditRecipeFragment"
+        android:label="Edit Recipe"
+        tools:layout="@layout/fragment_edit_recipe">
+
+        <argument
+            android:name="recipeId"
+            app:argType="string" />
+    </fragment>
 
 </navigation>

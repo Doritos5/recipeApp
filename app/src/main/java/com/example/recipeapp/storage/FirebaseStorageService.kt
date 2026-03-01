@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
+import android.util.Log
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.tasks.await
 import java.io.ByteArrayOutputStream
@@ -12,8 +13,12 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Service for uploading recipe images to Firebase Storage.
+ * Service for uploading images to Firebase Storage.
  * Includes image compression to save bandwidth and storage costs.
+ *
+ * NOTE: Firebase Storage requires the Blaze (pay-as-you-go) plan.
+ * On the free Spark plan, uploads will fail with 404.
+ * Currently, images are saved locally and this service is called as best-effort.
  */
 @Singleton
 class FirebaseStorageService @Inject constructor(
@@ -21,27 +26,23 @@ class FirebaseStorageService @Inject constructor(
 ) {
 
     companion object {
+        private const val TAG = "STORAGE_DEBUG"
         private const val RECIPE_IMAGES_PATH = "recipe_images"
-        private const val COMPRESSION_QUALITY = 70 // 0-100, JPEG quality
-        private const val MAX_IMAGE_DIMENSION = 1024 // Max width or height in pixels
+        private const val PROFILE_IMAGES_PATH = "profile_images"
+        private const val COMPRESSION_QUALITY = 70
+        private const val MAX_IMAGE_DIMENSION = 1024
     }
 
     /**
      * Compresses an image from a URI before uploading.
      * Scales the image down if it exceeds [MAX_IMAGE_DIMENSION] and compresses to JPEG.
-     *
-     * @param context Android context to open the content URI.
-     * @param imageUri The URI of the image to compress.
-     * @return A compressed ByteArray of the image in JPEG format.
      */
     fun compressImage(context: Context, imageUri: Uri): ByteArray {
-        // Decode with inJustDecodeBounds to get dimensions without loading full bitmap
         val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
         context.contentResolver.openInputStream(imageUri)?.use { stream ->
             BitmapFactory.decodeStream(stream, null, options)
         }
 
-        // Calculate sample size for downscaling
         val (origWidth, origHeight) = options.outWidth to options.outHeight
         var sampleSize = 1
         while (origWidth / sampleSize > MAX_IMAGE_DIMENSION * 2 ||
@@ -50,20 +51,16 @@ class FirebaseStorageService @Inject constructor(
             sampleSize *= 2
         }
 
-        // Decode the actual bitmap with the calculated sample size
         val decodeOptions = BitmapFactory.Options().apply { inSampleSize = sampleSize }
         val bitmap = context.contentResolver.openInputStream(imageUri)?.use { stream ->
             BitmapFactory.decodeStream(stream, null, decodeOptions)
         } ?: throw IllegalStateException("Could not decode image from URI: $imageUri")
 
-        // Scale down further if still too large
         val scaledBitmap = scaleBitmapIfNeeded(bitmap)
 
-        // Compress to JPEG
         val outputStream = ByteArrayOutputStream()
         scaledBitmap.compress(Bitmap.CompressFormat.JPEG, COMPRESSION_QUALITY, outputStream)
 
-        // Recycle bitmaps to free memory
         if (scaledBitmap != bitmap) bitmap.recycle()
         scaledBitmap.recycle()
 
@@ -101,21 +98,41 @@ class FirebaseStorageService @Inject constructor(
      * @throws Exception if upload fails.
      */
     suspend fun uploadRecipeImage(context: Context, imageUri: Uri, userId: String): String {
-        // 1. Compress the image
         val compressedBytes = compressImage(context, imageUri)
-
-        // 2. Create a unique storage reference: recipe_images/{userId}/{uuid}.jpg
         val fileName = "${UUID.randomUUID()}.jpg"
         val storageRef = firebaseStorage.reference
             .child(RECIPE_IMAGES_PATH)
             .child(userId)
             .child(fileName)
 
-        // 3. Upload the compressed bytes
+        Log.d(TAG, "Uploading recipe image to: ${storageRef.path}")
         storageRef.putBytes(compressedBytes).await()
+        val url = storageRef.downloadUrl.await().toString()
+        Log.d(TAG, "Recipe image uploaded: $url")
+        return url
+    }
 
-        // 4. Get and return the download URL
-        return storageRef.downloadUrl.await().toString()
+    /**
+     * Uploads a profile image to Firebase Storage under a dedicated path.
+     *
+     * @param context Android context (needed for content resolver).
+     * @param imageUri The local URI of the image to upload.
+     * @param userId The current user's UID.
+     * @return The download URL string of the uploaded image.
+     * @throws Exception if upload fails.
+     */
+    suspend fun uploadProfileImage(context: Context, imageUri: Uri, userId: String): String {
+        val compressedBytes = compressImage(context, imageUri)
+        val storageRef = firebaseStorage.reference
+            .child(PROFILE_IMAGES_PATH)
+            .child(userId)
+            .child("profile.jpg")
+
+        Log.d(TAG, "Uploading profile image to: ${storageRef.path}")
+        storageRef.putBytes(compressedBytes).await()
+        val url = storageRef.downloadUrl.await().toString()
+        Log.d(TAG, "Profile image uploaded: $url")
+        return url
     }
 }
 

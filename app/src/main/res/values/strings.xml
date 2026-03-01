@@ -22,4 +22,22 @@
     <string name="dont_have_account">Don\'t have an account? Sign Up</string>
     <string name="already_have_account">Already have an account? Login</string>
     <string name="continue_as_guest">Continue as Guest</string>
+
+    <!-- Navigation / Tabs -->
+    <string name="all_recipes">All Recipes</string>
+    <string name="my_recipes">My Recipes</string>
+    <string name="profile">Profile</string>
+
+    <!-- Edit Recipe -->
+    <string name="edit_recipe">Edit Recipe</string>
+    <string name="update_recipe">Update Recipe</string>
+    <string name="delete_recipe">Delete Recipe</string>
+
+    <!-- Profile -->
+    <string name="display_name">Display Name</string>
+    <string name="update_profile">Update Profile</string>
+    <string name="pick_profile_photo">Pick Profile Photo</string>
+    <string name="profile_image">Profile image</string>
+    <string name="no_recipes_yet">No recipes yet. Add your first recipe!</string>
+    <string name="guest_mode">You are browsing as a guest. Log in to see your recipes.</string>
 </resources>
