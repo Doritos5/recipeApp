@@ -1,4 +1,5 @@
 ﻿package com.example.recipeapp.ui
+
 import android.Manifest
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -28,9 +29,12 @@ import com.google.android.material.textfield.TextInputEditText
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import java.util.UUID
+
 @AndroidEntryPoint
 class AddRecipeFragment : Fragment() {
+
     private val viewModel: RecipeViewModel by activityViewModels()
+
     private lateinit var titleEt: TextInputEditText
     private lateinit var instructionsEt: TextInputEditText
     private lateinit var imageEt: TextInputEditText
@@ -39,10 +43,13 @@ class AddRecipeFragment : Fragment() {
     private lateinit var pickImageBtn: Button
     private lateinit var recipeImageView: ImageView
     private lateinit var uploadProgressBar: ProgressBar
+
     private var selectedImageUri: Uri? = null
+
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private var currentLat: Double? = 0.0
     private var currentLong: Double? = 0.0
+
     private val imagePickerLauncher = registerForActivityResult(
         ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -58,6 +65,7 @@ class AddRecipeFragment : Fragment() {
             }
         }
     }
+
     private val requestLocationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
@@ -69,6 +77,7 @@ class AddRecipeFragment : Fragment() {
             Toast.makeText(context, "Location permission denied", Toast.LENGTH_SHORT).show()
         }
     }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -81,20 +90,33 @@ class AddRecipeFragment : Fragment() {
         checkPermissionsAndGetLocation()
         return view
     }
+
     private fun checkPermissionsAndGetLocation() {
-        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(
+                requireContext(), Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
             getLocation()
         } else {
-            requestLocationPermissionLauncher.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION))
+            requestLocationPermissionLauncher.launch(
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
+            )
         }
     }
+
     private fun getLocation() {
         try {
             fusedLocationClient.lastLocation.addOnSuccessListener { location ->
-                location?.let { currentLat = it.latitude; currentLong = it.longitude }
+                location?.let {
+                    currentLat = it.latitude
+                    currentLong = it.longitude
+                }
             }
-        } catch (e: SecurityException) { e.printStackTrace() }
+        } catch (e: SecurityException) {
+            e.printStackTrace()
+        }
     }
+
     private fun initViews(view: View) {
         titleEt = view.findViewById(R.id.addRecipeTitleEt)
         instructionsEt = view.findViewById(R.id.addRecipeInstructionsEt)
@@ -105,28 +127,42 @@ class AddRecipeFragment : Fragment() {
         recipeImageView = view.findViewById(R.id.addRecipeImageView)
         uploadProgressBar = view.findViewById(R.id.addRecipeProgressBar)
     }
+
     private fun setupListeners() {
         cancelBtn.setOnClickListener { parentFragmentManager.popBackStack() }
         pickImageBtn.setOnClickListener { imagePickerLauncher.launch("image/*") }
         imageEt.setOnFocusChangeListener { _, hasFocus ->
-            if (hasFocus && !imageEt.text.isNullOrEmpty()) { selectedImageUri = null; recipeImageView.visibility = View.GONE }
+            if (hasFocus && !imageEt.text.isNullOrEmpty()) {
+                selectedImageUri = null
+                recipeImageView.visibility = View.GONE
+            }
         }
         saveBtn.setOnClickListener { saveRecipe() }
     }
+
     private fun observeUploadState() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.uploadState.collect { state ->
                     when (state) {
-                        is UploadState.Idle -> { uploadProgressBar.visibility = View.GONE; saveBtn.isEnabled = true }
-                        is UploadState.Loading -> { uploadProgressBar.visibility = View.VISIBLE; saveBtn.isEnabled = false }
+                        is UploadState.Idle -> {
+                            uploadProgressBar.visibility = View.GONE
+                            saveBtn.isEnabled = true
+                        }
+                        is UploadState.Loading -> {
+                            uploadProgressBar.visibility = View.VISIBLE
+                            saveBtn.isEnabled = false
+                        }
                         is UploadState.Success -> {
-                            uploadProgressBar.visibility = View.GONE; saveBtn.isEnabled = true
+                            uploadProgressBar.visibility = View.GONE
+                            saveBtn.isEnabled = true
                             Toast.makeText(context, "Recipe Saved!", Toast.LENGTH_SHORT).show()
-                            viewModel.resetUploadState(); parentFragmentManager.popBackStack()
+                            viewModel.resetUploadState()
+                            parentFragmentManager.popBackStack()
                         }
                         is UploadState.Error -> {
-                            uploadProgressBar.visibility = View.GONE; saveBtn.isEnabled = true
+                            uploadProgressBar.visibility = View.GONE
+                            saveBtn.isEnabled = true
                             Toast.makeText(context, "Error: ${state.message}", Toast.LENGTH_LONG).show()
                             viewModel.resetUploadState()
                         }
@@ -135,22 +171,40 @@ class AddRecipeFragment : Fragment() {
             }
         }
     }
+
     private fun saveRecipe() {
         val title = titleEt.text.toString().trim()
         val instructions = instructionsEt.text.toString().trim()
         val imageUrl = imageEt.text.toString().trim()
-        if (title.isEmpty()) { titleEt.error = "Please enter a title"; return }
+
+        if (title.isEmpty()) {
+            titleEt.error = "Please enter a title"
+            return
+        }
+
         val hasDeviceImage = selectedImageUri != null
+
+        // If a device image was picked, don't store the local file:// path in imageUrl —
+        // the repository will compress it to Base64 and store it in imageRemoteUrl instead.
+        // imageUrl is only used for manual https:// URLs typed into the text field.
         val resolvedImageUrl = when {
-            hasDeviceImage -> selectedImageUri.toString()
+            hasDeviceImage -> null
             imageUrl.isNotEmpty() -> imageUrl
             else -> null
         }
+
         val newRecipe = Recipe(
-            id = UUID.randomUUID().toString(), title = title, instructions = instructions,
-            imageUrl = resolvedImageUrl, description = "", ingredients = "",
-            latitude = currentLat, longitude = currentLong
+            id = UUID.randomUUID().toString(),
+            title = title,
+            instructions = instructions,
+            imageUrl = resolvedImageUrl,
+            description = "",
+            ingredients = "",
+            latitude = currentLat,
+            longitude = currentLong
         )
+
         viewModel.addNewRecipe(newRecipe, if (hasDeviceImage) selectedImageUri else null, requireContext())
     }
 }
+
