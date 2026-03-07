@@ -1,6 +1,8 @@
 package com.example.recipeapp.ui
 
+import android.graphics.BitmapFactory
 import android.net.Uri
+import android.util.Base64
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -70,22 +72,36 @@ class RecipesAdapter(
         // 3. Cancel any previous Picasso request for this ImageView
         Picasso.get().cancelRequest(holder.imageView)
 
-        // 4. Determine which image URL to display (prefer remote Firebase URL, fallback to local/web URL)
+        // 4. Determine which image URL to display (prefer remote Base64/URL, fallback to local/web URL)
         val displayImageUrl = recipe.imageRemoteUrl ?: recipe.imageUrl
 
         if (!displayImageUrl.isNullOrEmpty()) {
-            if (displayImageUrl.startsWith("content://") || displayImageUrl.startsWith("file://")) {
-                Picasso.get()
-                    .load(Uri.parse(displayImageUrl))
-                    .placeholder(R.drawable.ic_launcher_foreground)
-                    .error(R.drawable.ic_launcher_foreground)
-                    .into(holder.imageView)
-            } else {
-                Picasso.get()
-                    .load(displayImageUrl)
-                    .placeholder(R.drawable.ic_launcher_foreground)
-                    .error(R.drawable.ic_launcher_foreground)
-                    .into(holder.imageView)
+            when {
+                displayImageUrl.startsWith("data:image") -> {
+                    // Base64 encoded image stored in Firestore — decode directly to Bitmap
+                    try {
+                        val base64 = displayImageUrl.substringAfter("base64,")
+                        val bytes = Base64.decode(base64, Base64.NO_WRAP)
+                        val bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+                        holder.imageView.setImageBitmap(bitmap)
+                    } catch (e: Exception) {
+                        holder.imageView.setImageResource(R.drawable.ic_launcher_foreground)
+                    }
+                }
+                displayImageUrl.startsWith("content://") || displayImageUrl.startsWith("file://") -> {
+                    Picasso.get()
+                        .load(Uri.parse(displayImageUrl))
+                        .placeholder(R.drawable.ic_launcher_foreground)
+                        .error(R.drawable.ic_launcher_foreground)
+                        .into(holder.imageView)
+                }
+                else -> {
+                    Picasso.get()
+                        .load(displayImageUrl)
+                        .placeholder(R.drawable.ic_launcher_foreground)
+                        .error(R.drawable.ic_launcher_foreground)
+                        .into(holder.imageView)
+                }
             }
         } else {
             holder.imageView.setImageResource(R.drawable.ic_launcher_foreground)

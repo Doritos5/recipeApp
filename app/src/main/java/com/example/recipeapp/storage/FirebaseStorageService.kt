@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
+import android.util.Base64
 import android.util.Log
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.tasks.await
@@ -133,6 +134,99 @@ class FirebaseStorageService @Inject constructor(
         val url = storageRef.downloadUrl.await().toString()
         Log.d(TAG, "Profile image uploaded: $url")
         return url
+    }
+
+    /**
+     * Compresses the profile image and encodes it as a Base64 data URI.
+     * This does NOT require Firebase Storage (Blaze plan) — the result is stored
+     * directly as a string field in Firestore.
+     *
+     * Returns a string like: "data:image/jpeg;base64,/9j/4AAQSk..."
+     * which can be decoded back to a Bitmap on any device.
+     *
+     * Uses a lower resolution (256px) and quality (60) to stay well under
+     * Firestore's 1MB document limit.
+     */
+    fun compressProfileImageToBase64(context: Context, imageUri: Uri): String {
+        // Decode with aggressive downscaling for Firestore storage (max 256px)
+        val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        context.contentResolver.openInputStream(imageUri)?.use { stream ->
+            BitmapFactory.decodeStream(stream, null, options)
+        }
+
+        var sampleSize = 1
+        while (options.outWidth / sampleSize > 512 || options.outHeight / sampleSize > 512) {
+            sampleSize *= 2
+        }
+
+        val decodeOptions = BitmapFactory.Options().apply { inSampleSize = sampleSize }
+        val bitmap = context.contentResolver.openInputStream(imageUri)?.use { stream ->
+            BitmapFactory.decodeStream(stream, null, decodeOptions)
+        } ?: throw IllegalStateException("Could not decode image from URI: $imageUri")
+
+        // Scale down to max 256px
+        val ratio = minOf(256f / bitmap.width, 256f / bitmap.height, 1f)
+        val scaled = if (ratio < 1f) {
+            Bitmap.createScaledBitmap(
+                bitmap,
+                (bitmap.width * ratio).toInt(),
+                (bitmap.height * ratio).toInt(),
+                true
+            )
+        } else bitmap
+
+        val outputStream = ByteArrayOutputStream()
+        scaled.compress(Bitmap.CompressFormat.JPEG, 60, outputStream)
+        if (scaled != bitmap) bitmap.recycle()
+        scaled.recycle()
+
+        val base64 = Base64.encodeToString(outputStream.toByteArray(), Base64.NO_WRAP)
+        Log.d(TAG, "Profile image compressed to Base64, size: ${base64.length} chars")
+        return "data:image/jpeg;base64,$base64"
+    }
+
+    /**
+     * Compresses a recipe image and encodes it as a Base64 data URI.
+     * Stored directly in the Firestore recipe document as [imageRemoteUrl].
+     * Works on the free Spark plan — no Firebase Storage needed.
+     *
+     * Uses 512px max dimension and 65% quality — enough detail for a recipe card
+     * while staying well under Firestore's 1MB document limit.
+     */
+    fun compressRecipeImageToBase64(context: Context, imageUri: Uri): String {
+        val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        context.contentResolver.openInputStream(imageUri)?.use { stream ->
+            BitmapFactory.decodeStream(stream, null, options)
+        }
+
+        var sampleSize = 1
+        while (options.outWidth / sampleSize > 1024 || options.outHeight / sampleSize > 1024) {
+            sampleSize *= 2
+        }
+
+        val decodeOptions = BitmapFactory.Options().apply { inSampleSize = sampleSize }
+        val bitmap = context.contentResolver.openInputStream(imageUri)?.use { stream ->
+            BitmapFactory.decodeStream(stream, null, decodeOptions)
+        } ?: throw IllegalStateException("Could not decode image from URI: $imageUri")
+
+        val ratio = minOf(512f / bitmap.width, 512f / bitmap.height, 1f)
+        val scaled = if (ratio < 1f) {
+            Bitmap.createScaledBitmap(
+                bitmap,
+                (bitmap.width * ratio).toInt(),
+                (bitmap.height * ratio).toInt(),
+                true
+            )
+        } else bitmap
+
+        val outputStream = ByteArrayOutputStream()
+        scaled.compress(Bitmap.CompressFormat.JPEG, 65, outputStream)
+        if (scaled != bitmap) bitmap.recycle()
+        scaled.recycle()
+
+        val base64 = Base64.encodeToString(outputStream.toByteArray(), Base64.NO_WRAP)
+        Log.d(TAG, "Recipe image compressed to Base64, size: ${base64.length} chars")
+        return "data:image/jpeg;base64,$base64"
     }
 }
 

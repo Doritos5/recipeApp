@@ -1,7 +1,9 @@
 package com.example.recipeapp.ui
 
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
+import android.util.Base64
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -143,19 +145,33 @@ class ProfileFragment : Fragment() {
                             emailEt.setText(state.email)
                             displayNameEt.setText(state.displayName)
 
-                            // Load profile image (handle local file:// and remote https://)
+                            // Load profile image: Base64 data URI, local file://, or remote https://
                             val imageUrl = state.profileImageUrl
                             if (!imageUrl.isNullOrEmpty()) {
-                                if (imageUrl.startsWith("file://") || imageUrl.startsWith("content://")) {
-                                    // Local image — load directly via URI
-                                    profileImageView.setImageURI(Uri.parse(imageUrl))
-                                } else {
-                                    // Remote URL — load via Picasso
-                                    Picasso.get()
-                                        .load(imageUrl)
-                                        .placeholder(R.drawable.icon_account)
-                                        .error(R.drawable.icon_account)
-                                        .into(profileImageView)
+                                when {
+                                    imageUrl.startsWith("data:image") -> {
+                                        // Base64 encoded image stored in Firestore
+                                        try {
+                                            val base64 = imageUrl.substringAfter("base64,")
+                                            val bytes = Base64.decode(base64, Base64.NO_WRAP)
+                                            val bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+                                            profileImageView.setImageBitmap(bitmap)
+                                        } catch (e: Exception) {
+                                            profileImageView.setImageResource(R.drawable.icon_account)
+                                        }
+                                    }
+                                    imageUrl.startsWith("file://") || imageUrl.startsWith("content://") -> {
+                                        // Local image — load directly via URI
+                                        profileImageView.setImageURI(Uri.parse(imageUrl))
+                                    }
+                                    else -> {
+                                        // Remote https:// URL — load via Picasso
+                                        Picasso.get()
+                                            .load(imageUrl)
+                                            .placeholder(R.drawable.icon_account)
+                                            .error(R.drawable.icon_account)
+                                            .into(profileImageView)
+                                    }
                                 }
                             } else {
                                 profileImageView.setImageResource(R.drawable.icon_account)
