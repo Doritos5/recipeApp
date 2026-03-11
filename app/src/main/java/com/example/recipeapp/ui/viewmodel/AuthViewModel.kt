@@ -4,11 +4,16 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.recipeapp.auth.AuthResult
 import com.example.recipeapp.auth.UserAuthManager
+import com.example.recipeapp.data.UserRepository
+import com.example.recipeapp.model.users.User
+import com.example.recipeapp.model.users.UserDao
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 /**
@@ -17,7 +22,9 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class AuthViewModel @Inject constructor(
-    private val authManager: UserAuthManager
+    private val authManager: UserAuthManager,
+    private val userRepository: UserRepository,
+    private val userDao: UserDao
 ) : ViewModel() {
 
     // --- Auth State ---
@@ -34,6 +41,29 @@ class AuthViewModel @Inject constructor(
         viewModelScope.launch {
             _authState.value = null
             val result = authManager.signUp(email, password)
+
+            // On successful signup, create the full user document in Firestore + Room
+            if (result is AuthResult.Success) {
+                val uid = result.user.uid
+                try {
+                    // Write the full document to Firestore (cloud source of truth)
+                    userRepository.createOrUpdateUser(
+                        uid = uid,
+                        email = email,
+                        name = result.user.displayName ?: "",
+                        imageUrl = null,
+                        isNewUser = true
+                    )
+                    // Also seed local Room cache
+                    withContext(Dispatchers.IO) {
+                        userDao.createUser(User(uid = uid, email = email, name = result.user.displayName ?: ""))
+                    }
+                } catch (e: Exception) {
+                    // Non-fatal: auth succeeded, just log
+                    android.util.Log.w("AUTH", "Could not create Firestore user doc: ${e.message}")
+                }
+            }
+
             _authState.value = result
         }
     }
@@ -56,4 +86,3 @@ class AuthViewModel @Inject constructor(
         _authState.value = null
     }
 }
-

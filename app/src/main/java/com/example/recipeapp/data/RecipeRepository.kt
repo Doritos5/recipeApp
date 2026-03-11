@@ -118,20 +118,26 @@ class RecipeRepository @Inject constructor(
         context: Context
     ): Recipe {
         return withContext(Dispatchers.IO) {
-            // TODO: Upload image to Firebase Storage when Blaze plan is enabled:
-            //  var remoteImageUrl: String? = null
-            //  if (imageUri != null) {
-            //      remoteImageUrl = storageService.uploadRecipeImage(context, imageUri, userId)
-            //  }
-            // Then set imageRemoteUrl = remoteImageUrl in the recipe copy below.
+            // Compress picked image to Base64 and store in imageRemoteUrl.
+            // This works on the free Spark plan — no Firebase Storage needed.
+            // The Base64 string is saved directly inside the Firestore document,
+            // so it is available on any device that loads the recipe.
+            var base64ImageUrl: String? = null
+            if (imageUri != null) {
+                try {
+                    base64ImageUrl = storageService.compressRecipeImageToBase64(context, imageUri)
+                    Log.d("RECIPE_TEST", "Recipe image compressed to Base64 (${base64ImageUrl.length} chars)")
+                } catch (e: Exception) {
+                    Log.w("RECIPE_TEST", "Could not compress recipe image: ${e.message}")
+                }
+            }
 
-            // Create the final recipe with userId and local image URI
             val finalRecipe = recipe.copy(
                 authorId = userId,
-                imageRemoteUrl = null  // TODO: set to remoteImageUrl once Firebase Storage is active
+                imageRemoteUrl = base64ImageUrl ?: recipe.imageRemoteUrl
             )
 
-            // Try to save to Firebase Firestore
+            // Save to Firestore
             try {
                 firestore.collection("recipes")
                     .document(finalRecipe.id)
@@ -161,20 +167,24 @@ class RecipeRepository @Inject constructor(
         context: Context
     ): Recipe {
         return withContext(Dispatchers.IO) {
-            // TODO: Upload new image to Firebase Storage when Blaze plan is enabled:
-            //  var remoteImageUrl: String? = recipe.imageRemoteUrl
-            //  if (imageUri != null) {
-            //      remoteImageUrl = storageService.uploadRecipeImage(context, imageUri, userId)
-            //  }
-            // Then set imageRemoteUrl = remoteImageUrl in the recipe copy below.
+            // If a new image was picked, compress it to Base64.
+            // If no new image was picked, keep the existing imageRemoteUrl.
+            var base64ImageUrl: String? = recipe.imageRemoteUrl
+            if (imageUri != null) {
+                try {
+                    base64ImageUrl = storageService.compressRecipeImageToBase64(context, imageUri)
+                    Log.d("RECIPE_TEST", "Recipe image re-compressed to Base64 (${base64ImageUrl.length} chars)")
+                } catch (e: Exception) {
+                    Log.w("RECIPE_TEST", "Could not compress updated recipe image: ${e.message}")
+                }
+            }
 
-            // Create updated recipe
             val updatedRecipe = recipe.copy(
-                authorId = userId
-                // TODO: add imageRemoteUrl = remoteImageUrl once Firebase Storage is active
+                authorId = userId,
+                imageRemoteUrl = base64ImageUrl
             )
 
-            // Update in Firebase Firestore
+            // Update in Firestore
             try {
                 firestore.collection("recipes")
                     .document(updatedRecipe.id)

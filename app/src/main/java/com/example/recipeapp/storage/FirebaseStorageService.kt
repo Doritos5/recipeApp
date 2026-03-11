@@ -4,10 +4,13 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
+import android.util.Base64
 import android.util.Log
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.tasks.await
 import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.InputStream
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -34,12 +37,99 @@ class FirebaseStorageService @Inject constructor(
     }
 
     /**
+     * Opens an InputStream for a URI that may be content:// or file://.
+     * ContentResolver.openInputStream() returns null for file:// URIs on Android 7+,
+     * so we fall back to reading the file directly in that case.
+     */
+    private fun openInputStream(context: Context, uri: Uri): InputStream? {
+        return if (uri.scheme == "file") {
+            val path = uri.path ?: return null
+            File(path).inputStream()
+        } else {
+            context.contentResolver.openInputStream(uri)
+        }
+    }
+
+    // ----------------------------------------------------------------
+    // Base64 compression (works on free Spark plan, no Storage needed)
+    // ----------------------------------------------------------------
+
+    /**
+     * Compresses a recipe image to a Base64 data URI string for storage in Firestore.
+     * Max 512×512px, 65% JPEG quality — readable on any device, no Firebase Storage needed.
+     */
+    fun compressRecipeImageToBase64(context: Context, imageUri: Uri): String {
+        return compressToBase64(context, imageUri, maxDimension = 512, quality = 65).also {
+            Log.d(TAG, "Recipe image compressed to Base64, size: ${it.length} chars")
+        }
+    }
+
+    /**
+     * Compresses a profile image to a Base64 data URI string for storage in Firestore.
+     * Max 256×256px, 60% JPEG quality — keeps well under Firestore's 1 MB document limit.
+     */
+    fun compressProfileImageToBase64(context: Context, imageUri: Uri): String {
+        return compressToBase64(context, imageUri, maxDimension = 256, quality = 60).also {
+            Log.d(TAG, "Profile image compressed to Base64, size: ${it.length} chars")
+        }
+    }
+
+    /**
+     * Shared implementation: decode → scale → JPEG compress → Base64 encode.
+     * Handles both content:// and file:// URIs correctly.
+     */
+    private fun compressToBase64(context: Context, imageUri: Uri, maxDimension: Int, quality: Int): String {
+        // --- Step 1: read bounds only ---
+        val boundsOptions = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        openInputStream(context, imageUri)?.use { stream ->
+            BitmapFactory.decodeStream(stream, null, boundsOptions)
+        }
+
+        // --- Step 2: calculate sample size ---
+        var sampleSize = 1
+        while (boundsOptions.outWidth / sampleSize > maxDimension * 2 ||
+               boundsOptions.outHeight / sampleSize > maxDimension * 2) {
+            sampleSize *= 2
+        }
+
+        // --- Step 3: decode scaled bitmap ---
+        val decodeOptions = BitmapFactory.Options().apply { inSampleSize = sampleSize }
+        val bitmap = openInputStream(context, imageUri)?.use { stream ->
+            BitmapFactory.decodeStream(stream, null, decodeOptions)
+        } ?: throw IllegalStateException("Could not open image stream for URI: $imageUri")
+
+        // --- Step 4: fine-scale to exact max dimension ---
+        val ratio = minOf(maxDimension.toFloat() / bitmap.width, maxDimension.toFloat() / bitmap.height, 1f)
+        val scaled = if (ratio < 1f) {
+            Bitmap.createScaledBitmap(
+                bitmap,
+                (bitmap.width * ratio).toInt(),
+                (bitmap.height * ratio).toInt(),
+                true
+            )
+        } else bitmap
+
+        // --- Step 5: compress to JPEG bytes and Base64 encode ---
+        val out = ByteArrayOutputStream()
+        scaled.compress(Bitmap.CompressFormat.JPEG, quality, out)
+        if (scaled != bitmap) bitmap.recycle()
+        scaled.recycle()
+
+        val base64 = Base64.encodeToString(out.toByteArray(), Base64.NO_WRAP)
+        return "data:image/jpeg;base64,$base64"
+    }
+
+    // ----------------------------------------------------------------
+    // Firebase Storage upload helpers (require Blaze plan)
+    // ----------------------------------------------------------------
+
+    /**
      * Compresses an image from a URI before uploading.
      * Scales the image down if it exceeds [MAX_IMAGE_DIMENSION] and compresses to JPEG.
      */
     fun compressImage(context: Context, imageUri: Uri): ByteArray {
         val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-        context.contentResolver.openInputStream(imageUri)?.use { stream ->
+        openInputStream(context, imageUri)?.use { stream ->
             BitmapFactory.decodeStream(stream, null, options)
         }
 
@@ -52,7 +142,7 @@ class FirebaseStorageService @Inject constructor(
         }
 
         val decodeOptions = BitmapFactory.Options().apply { inSampleSize = sampleSize }
-        val bitmap = context.contentResolver.openInputStream(imageUri)?.use { stream ->
+        val bitmap = openInputStream(context, imageUri)?.use { stream ->
             BitmapFactory.decodeStream(stream, null, decodeOptions)
         } ?: throw IllegalStateException("Could not decode image from URI: $imageUri")
 
@@ -135,4 +225,3 @@ class FirebaseStorageService @Inject constructor(
         return url
     }
 }
-

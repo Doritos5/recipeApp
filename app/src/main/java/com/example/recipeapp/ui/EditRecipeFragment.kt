@@ -1,7 +1,9 @@
 package com.example.recipeapp.ui
 
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
+import android.util.Base64
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -132,16 +134,31 @@ class EditRecipeFragment : Fragment() {
                 // Show existing image
                 val displayUrl = recipe.imageRemoteUrl ?: recipe.imageUrl
                 if (!displayUrl.isNullOrEmpty()) {
-                    imageEt.setText(displayUrl)
                     recipeImageView.visibility = View.VISIBLE
-                    if (displayUrl.startsWith("file://") || displayUrl.startsWith("content://")) {
-                        recipeImageView.setImageURI(Uri.parse(displayUrl))
-                    } else {
-                        Picasso.get()
-                            .load(displayUrl)
-                            .placeholder(R.drawable.ic_launcher_foreground)
-                            .error(R.drawable.ic_launcher_foreground)
-                            .into(recipeImageView)
+                    when {
+                        displayUrl.startsWith("data:image") -> {
+                            // Base64 image stored in Firestore — don't put it in the text field
+                            try {
+                                val base64 = displayUrl.substringAfter("base64,")
+                                val bytes = Base64.decode(base64, Base64.NO_WRAP)
+                                val bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+                                recipeImageView.setImageBitmap(bitmap)
+                            } catch (e: Exception) {
+                                recipeImageView.setImageResource(R.drawable.ic_launcher_foreground)
+                            }
+                        }
+                        displayUrl.startsWith("file://") || displayUrl.startsWith("content://") -> {
+                            imageEt.setText(displayUrl)
+                            recipeImageView.setImageURI(Uri.parse(displayUrl))
+                        }
+                        else -> {
+                            imageEt.setText(displayUrl)
+                            Picasso.get()
+                                .load(displayUrl)
+                                .placeholder(R.drawable.ic_launcher_foreground)
+                                .error(R.drawable.ic_launcher_foreground)
+                                .into(recipeImageView)
+                        }
                     }
                 }
             }
@@ -194,17 +211,23 @@ class EditRecipeFragment : Fragment() {
         val hasUrl = imageUrl.isNotEmpty()
         val hasDeviceImage = selectedImageUri != null
 
+        // When no new image is picked:
+        // - if user typed a URL, use that
+        // - otherwise keep the existing imageRemoteUrl (Base64 from Firestore) untouched
         val resolvedImageUrl = when {
             hasDeviceImage -> selectedImageUri.toString()
             hasUrl -> imageUrl
             else -> original.imageUrl
         }
 
-        // Build updated recipe, keeping original ID and other fields
+        // Build updated recipe, keeping original ID and other fields.
+        // Always preserve imageRemoteUrl unless a new device image was picked
+        // (the repository will re-compress it; if no new image, the repo keeps the existing one).
         val updatedRecipe = original.copy(
             title = title,
             instructions = instructions,
-            imageUrl = resolvedImageUrl
+            imageUrl = resolvedImageUrl,
+            imageRemoteUrl = if (hasDeviceImage) null else original.imageRemoteUrl
         )
 
         recipeViewModel.updateRecipe(updatedRecipe, selectedImageUri, requireContext())
