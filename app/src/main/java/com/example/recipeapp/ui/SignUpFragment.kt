@@ -42,21 +42,25 @@ class SignUpFragment : Fragment() {
         val firstNameContainer = view.findViewById<View>(R.id.firstNameContainer)
         firstNameEt = firstNameContainer.findViewById(R.id.fieldInput)
         firstNameContainer.findViewById<TextView>(R.id.fieldLabel).text = "First Name"
+        firstNameEt.hint = "e.g, Israel"
 
         // Initialize lastName field
         val lastNameContainer = view.findViewById<View>(R.id.lastNameContainer)
         lastNameEt = lastNameContainer.findViewById(R.id.fieldInput)
         lastNameContainer.findViewById<TextView>(R.id.fieldLabel).text = "Last Name"
+        lastNameEt.hint = "e.g, Israeli"
 
         // Initialize username field
         val usernameContainer = view.findViewById<View>(R.id.usernameContainer)
         usernameEt = usernameContainer.findViewById(R.id.fieldInput)
         usernameContainer.findViewById<TextView>(R.id.fieldLabel).text = "Username"
+        usernameEt.hint = "e.g, Israeli123Israel"
 
         // Initialize email field
         val emailContainer = view.findViewById<View>(R.id.emailContainer)
         emailEt = emailContainer.findViewById(R.id.fieldInput)
         emailContainer.findViewById<TextView>(R.id.fieldLabel).text = "Email"
+        emailEt.hint = "e.g, israelis@example.com"
 
         // Initialize password field
         val passwordContainer = view.findViewById<View>(R.id.passwordContainer)
