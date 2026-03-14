@@ -11,6 +11,7 @@ data class User(
     val name: String = "",
     @ColumnInfo(name = "last_name")
     val lastName: String = "",
+    val username: String = "",
     val email: String = "",
     val imageUrl: String? = null,
 )
