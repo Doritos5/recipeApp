@@ -37,7 +37,13 @@ class AuthViewModel @Inject constructor(
     /** Returns true if a user is logged in */
     fun isLoggedIn(): Boolean = authManager.isLoggedIn()
 
-    fun signUp(email: String, password: String) {
+    fun signUp(
+        email: String,
+        password: String,
+        firstName: String,
+        lastName: String,
+        username: String
+    ) {
         viewModelScope.launch {
             _authState.value = null
             val result = authManager.signUp(email, password)
@@ -46,17 +52,28 @@ class AuthViewModel @Inject constructor(
             if (result is AuthResult.Success) {
                 val uid = result.user.uid
                 try {
-                    // Write the full document to Firestore (cloud source of truth)
+                    // Write the full document to Firestore (cloud source of truth) with all user data
                     userRepository.createOrUpdateUser(
                         uid = uid,
                         email = email,
-                        name = result.user.displayName ?: "",
+                        firstName = firstName,
+                        lastName = lastName,
+                        username = username,
+                        password = password,
                         imageUrl = null,
                         isNewUser = true
                     )
                     // Also seed local Room cache
                     withContext(Dispatchers.IO) {
-                        userDao.createUser(User(uid = uid, email = email, name = result.user.displayName ?: ""))
+                        userDao.createUser(
+                            User(
+                                uid = uid,
+                                email = email,
+                                name = firstName,
+                                lastName = lastName,
+                                username = username
+                            )
+                        )
                     }
                 } catch (e: Exception) {
                     // Non-fatal: auth succeeded, just log
