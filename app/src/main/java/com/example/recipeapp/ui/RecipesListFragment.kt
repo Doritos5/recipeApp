@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.recipeapp.R
 import com.example.recipeapp.RecipeViewModel
+import com.google.gson.Gson
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -31,11 +32,28 @@ class RecipesListFragment : Fragment() {
         recyclerView = view.findViewById(R.id.recipesListRv)
         recyclerView.layoutManager = LinearLayoutManager(context)
 
-        // Start with an empty list
-        recipesAdapter = RecipesAdapter(emptyList())
+        recipesAdapter = RecipesAdapter(
+            recipes = emptyList(),
+            onRecipeClick = { recipe ->
+                val bundle = Bundle().apply {
+                    putString("title", recipe.title)
+                    putString("instructions", recipe.instructions)
+                    putString("imageUrl", recipe.imageUrl)
+                    putString("imageRemoteUrl", recipe.imageRemoteUrl)
+                    // Add tags as JSON array string
+                    putString("tags", Gson().toJson(recipe.tags))
+                }
+
+                findNavController().navigate(
+                    R.id.action_recipeListFragment_to_recipeDetailFragment,
+                    bundle
+                )
+            }
+        )
+
         recyclerView.adapter = recipesAdapter
 
-        // 2. Observe LiveData (ViewModel injected by Hilt via activityViewModels)
+        // 2. Observe LiveData
         viewModel.recipes.observe(viewLifecycleOwner) { recipes ->
             recipesAdapter.setRecipes(recipes)
             Log.d("RECIPE_TEST", "Updated UI with ${recipes.size} recipes")
@@ -47,7 +65,6 @@ class RecipesListFragment : Fragment() {
         val fab: View = view.findViewById(R.id.addRecipeFab)
         fab.setOnClickListener {
             findNavController().navigate(R.id.action_list_to_add)
-
         }
 
         return view

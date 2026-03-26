@@ -53,6 +53,10 @@
         <action
             android:id="@+id/action_list_to_add"
             app:destination="@id/addRecipeFragment" />
+
+        <action
+            android:id="@+id/action_recipeListFragment_to_recipeDetailFragment"
+            app:destination="@id/recipeDetailFragment" />
     </fragment>
 
     <!-- My Recipes Screen (Tab 2) -->
@@ -69,6 +73,10 @@
         <action
             android:id="@+id/action_myRecipes_to_add"
             app:destination="@id/addRecipeFragment" />
+
+        <action
+            android:id="@+id/action_myRecipes_to_recipeDetailFragment"
+            app:destination="@id/recipeDetailFragment" />
     </fragment>
 
     <!-- Profile Screen (Tab 3) -->
@@ -95,6 +103,14 @@
         <argument
             android:name="recipeId"
             app:argType="string" />
+    </fragment>
+
+    <!--Recipe Detail Screen-->
+    <fragment
+        android:id="@+id/recipeDetailFragment"
+        android:name="com.example.recipeapp.ui.RecipeDetailFragment"
+        android:label="Recipe Detail"
+        tools:layout="@layout/fragment_recipe_detail">
     </fragment>
 
 </navigation>

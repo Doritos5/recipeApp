@@ -23,6 +23,7 @@ import com.squareup.picasso.Picasso
  */
 class RecipesAdapter(
     private var recipes: List<Recipe>,
+    private val onRecipeClick: ((Recipe) -> Unit)? = null,
     private val onEditClick: ((Recipe) -> Unit)? = null,
     private val onDeleteClick: ((Recipe) -> Unit)? = null
 ) : RecyclerView.Adapter<RecipesAdapter.RecipeViewHolder>() {
@@ -37,6 +38,12 @@ class RecipesAdapter(
         val titleTextView: TextView = itemView.findViewById(R.id.recipeRowTitle)
         val instructionsTextView: TextView = itemView.findViewById(R.id.recipeRowInstructions)
         val imageView: ImageView = itemView.findViewById(R.id.recipeRowImage)
+
+        val authorNameTextView: TextView = itemView.findViewById(R.id.recipeAuthorName)
+        val dateTextView: TextView = itemView.findViewById(R.id.recipeDate)
+        val likesCountTextView: TextView = itemView.findViewById(R.id.recipeLikesCount)
+        val commentsCountTextView: TextView = itemView.findViewById(R.id.recipeCommentsCount)
+
         val editBtn: ImageButton? = itemView.findViewById(R.id.recipeRowEditBtn)
         val deleteBtn: ImageButton? = itemView.findViewById(R.id.recipeRowDeleteBtn)
     }
@@ -49,10 +56,19 @@ class RecipesAdapter(
 
     override fun onBindViewHolder(holder: RecipeViewHolder, position: Int) {
         val recipe = recipes[position]
+        holder.itemView.setOnClickListener {
+            onRecipeClick?.invoke(recipe)
+        }
 
         // 1. Set text data
         holder.titleTextView.text = recipe.title
-        holder.instructionsTextView.text = recipe.instructions ?: "No instructions available"
+
+        // TODO: Replace placeholder values with real data from Firestore.
+        holder.authorNameTextView.text = "Recipe User"
+        holder.dateTextView.text = "12/08/2025"
+        holder.likesCountTextView.text = "217"
+        holder.commentsCountTextView.text = "38"
+        holder.instructionsTextView.text = "view all 38 comments"
 
         // 2. Show/hide action buttons based on callbacks
         if (onEditClick != null) {
