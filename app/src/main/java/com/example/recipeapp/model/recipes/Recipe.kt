@@ -27,5 +27,6 @@ data class Recipe(
     val authorId: String? = null,
     val imageRemoteUrl: String? = null,
     val latitude: Double? = 0.0,
-    val longitude: Double? = 0.0
+    val longitude: Double? = 0.0,
+    val tags: List<String> = emptyList()
 )

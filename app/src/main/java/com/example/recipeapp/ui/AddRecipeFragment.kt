@@ -23,6 +23,7 @@ import com.example.recipeapp.RecipeViewModel
 import com.example.recipeapp.model.recipes.Recipe
 import com.example.recipeapp.ui.state.UploadState
 import com.example.recipeapp.util.ImageUtils
+import com.example.recipeapp.util.TagValidator
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.material.textfield.TextInputEditText
@@ -43,6 +44,7 @@ class AddRecipeFragment : Fragment() {
     private lateinit var pickImageBtn: Button
     private lateinit var recipeImageView: ImageView
     private lateinit var uploadProgressBar: ProgressBar
+    private lateinit var tagsEt: TextInputEditText
 
     private var selectedImageUri: Uri? = null
 
@@ -82,8 +84,8 @@ class AddRecipeFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val view = inflater.inflate(R.layout.fragment_add_recipe, container, false)
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
+        val view = inflater.inflate(R.layout.fragment_add_recipe, container, false)
         initViews(view)
         setupListeners()
         observeUploadState()
@@ -126,6 +128,7 @@ class AddRecipeFragment : Fragment() {
         pickImageBtn = view.findViewById(R.id.addRecipePickImageBtn)
         recipeImageView = view.findViewById(R.id.addRecipeImageView)
         uploadProgressBar = view.findViewById(R.id.addRecipeProgressBar)
+        tagsEt = view.findViewById(R.id.addRecipeTagsEt)
     }
 
     private fun setupListeners() {
@@ -201,10 +204,10 @@ class AddRecipeFragment : Fragment() {
             description = "",
             ingredients = "",
             latitude = currentLat,
-            longitude = currentLong
+            longitude = currentLong,
+            tags = TagValidator.sanitizeTags(tagsEt.text.toString().trim())
         )
 
         viewModel.addNewRecipe(newRecipe, if (hasDeviceImage) selectedImageUri else null, requireContext())
     }
 }
-

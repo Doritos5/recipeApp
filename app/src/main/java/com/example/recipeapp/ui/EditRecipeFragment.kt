@@ -1,6 +1,8 @@
 package com.example.recipeapp.ui
 
+import android.content.res.ColorStateList
 import android.graphics.BitmapFactory
+import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.util.Base64
@@ -23,39 +25,41 @@ import com.example.recipeapp.RecipeViewModel
 import com.example.recipeapp.model.recipes.Recipe
 import com.example.recipeapp.ui.state.UploadState
 import com.example.recipeapp.util.ImageUtils
+import com.example.recipeapp.util.TagValidator
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.chip.Chip
+import com.google.android.material.chip.ChipGroup
 import com.google.android.material.textfield.TextInputEditText
 import com.squareup.picasso.Picasso
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
-/**
- * EditRecipeFragment allows the user to update an existing recipe.
- * Receives recipeId via SafeArgs from MyRecipesFragment.
- * Reuses shared logic (image picker, upload state) from AddRecipeFragment pattern.
- */
 @AndroidEntryPoint
 class EditRecipeFragment : Fragment() {
 
     private val recipeViewModel: RecipeViewModel by activityViewModels()
     private val args: EditRecipeFragmentArgs by navArgs()
 
-    // UI Components
+    private lateinit var backBtn: ImageView
+
     private lateinit var titleEt: TextInputEditText
     private lateinit var instructionsEt: TextInputEditText
     private lateinit var imageEt: TextInputEditText
+    private lateinit var tagsEt: TextInputEditText
+    private lateinit var ingredientsEt: TextInputEditText
+
     private lateinit var saveBtn: Button
     private lateinit var cancelBtn: Button
     private lateinit var pickImageBtn: Button
+    private lateinit var addTagBtn: MaterialButton
+    private lateinit var tagsChipGroup: ChipGroup
     private lateinit var recipeImageView: ImageView
     private lateinit var uploadProgressBar: ProgressBar
 
-    // The recipe being edited
     private var currentRecipe: Recipe? = null
-
-    // Selected new image URI from gallery
     private var selectedImageUri: Uri? = null
+    private val currentTags = mutableListOf<String>()
 
-    // --- Image Picker Launcher ---
     private val imagePickerLauncher = registerForActivityResult(
         ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -87,23 +91,47 @@ class EditRecipeFragment : Fragment() {
     }
 
     private fun initViews(view: View) {
+        backBtn = view.findViewById(R.id.backBtn)
+
         titleEt = view.findViewById(R.id.editRecipeTitleEt)
         instructionsEt = view.findViewById(R.id.editRecipeInstructionsEt)
         imageEt = view.findViewById(R.id.editRecipeImageEt)
+        tagsEt = view.findViewById(R.id.editRecipeTagsEt)
+        ingredientsEt = view.findViewById(R.id.editRecipeIngredientsEt)
+
         saveBtn = view.findViewById(R.id.editRecipeSaveBtn)
         cancelBtn = view.findViewById(R.id.editRecipeCancelBtn)
         pickImageBtn = view.findViewById(R.id.editRecipePickImageBtn)
+        addTagBtn = view.findViewById(R.id.addTagBtn)
+        tagsChipGroup = view.findViewById(R.id.tagsChipGroup)
         recipeImageView = view.findViewById(R.id.editRecipeImageView)
         uploadProgressBar = view.findViewById(R.id.editRecipeProgressBar)
     }
 
     private fun setupListeners() {
+        backBtn.setOnClickListener {
+            parentFragmentManager.popBackStack()
+        }
+
         cancelBtn.setOnClickListener {
             parentFragmentManager.popBackStack()
         }
 
         pickImageBtn.setOnClickListener {
             imagePickerLauncher.launch("image/*")
+        }
+
+        addTagBtn.setOnClickListener {
+            val rawInput = tagsEt.text.toString().trim()
+
+            if (rawInput.isNotEmpty()) {
+                rawInput.split(",")
+                    .map { it.trim() }
+                    .filter { it.isNotEmpty() }
+                    .forEach { addTagChip(it) }
+
+                tagsEt.text?.clear()
+            }
         }
 
         imageEt.setOnFocusChangeListener { _, hasFocus ->
@@ -118,26 +146,64 @@ class EditRecipeFragment : Fragment() {
         }
     }
 
-    /**
-     * Loads the recipe by ID (from SafeArgs) and pre-fills the form.
-     */
+    private fun addTagChip(tag: String) {
+        val cleanTag = tag.trim().removePrefix("#")
+        if (cleanTag.isBlank()) return
+        if (currentTags.any { it.equals(cleanTag, ignoreCase = true) }) return
+
+        currentTags.add(cleanTag)
+
+        val chip = Chip(requireContext()).apply {
+            text = "#$cleanTag"
+            isClickable = false
+            isCheckable = false
+            isCloseIconVisible = true
+
+            setTextColor(Color.WHITE)
+            closeIconTint = ColorStateList.valueOf(Color.WHITE)
+            chipBackgroundColor = ColorStateList.valueOf(Color.parseColor("#EE7DA8"))
+
+            chipCornerRadius = 18f
+            chipStrokeWidth = 0f
+            chipMinHeight = 36f
+
+            setEnsureMinTouchTargetSize(false)
+            rippleColor = null
+
+            setOnCloseIconClickListener {
+                currentTags.remove(cleanTag)
+                tagsChipGroup.removeView(this)
+            }
+        }
+
+        tagsChipGroup.addView(chip)
+    }
+
+    private fun renderExistingTags(tags: List<String>) {
+        currentTags.clear()
+        tagsChipGroup.removeAllViews()
+
+        tags.forEach { tag ->
+            addTagChip(tag)
+        }
+    }
+
     private fun loadRecipe() {
         val recipeId = args.recipeId
 
         recipeViewModel.getRecipeById(recipeId).observe(viewLifecycleOwner) { recipe ->
             if (recipe != null && currentRecipe == null) {
-                // Only pre-fill once (avoid overwriting user edits on LiveData re-emission)
                 currentRecipe = recipe
                 titleEt.setText(recipe.title)
                 instructionsEt.setText(recipe.instructions ?: "")
+                ingredientsEt.setText(recipe.ingredients ?: "")
+                renderExistingTags(recipe.tags)
 
-                // Show existing image
                 val displayUrl = recipe.imageRemoteUrl ?: recipe.imageUrl
                 if (!displayUrl.isNullOrEmpty()) {
                     recipeImageView.visibility = View.VISIBLE
                     when {
                         displayUrl.startsWith("data:image") -> {
-                            // Base64 image stored in Firestore — don't put it in the text field
                             try {
                                 val base64 = displayUrl.substringAfter("base64,")
                                 val bytes = Base64.decode(base64, Base64.NO_WRAP)
@@ -147,10 +213,12 @@ class EditRecipeFragment : Fragment() {
                                 recipeImageView.setImageResource(R.drawable.ic_launcher_foreground)
                             }
                         }
+
                         displayUrl.startsWith("file://") || displayUrl.startsWith("content://") -> {
                             imageEt.setText(displayUrl)
                             recipeImageView.setImageURI(Uri.parse(displayUrl))
                         }
+
                         else -> {
                             imageEt.setText(displayUrl)
                             Picasso.get()
@@ -174,10 +242,12 @@ class EditRecipeFragment : Fragment() {
                             uploadProgressBar.visibility = View.GONE
                             saveBtn.isEnabled = true
                         }
+
                         is UploadState.Loading -> {
                             uploadProgressBar.visibility = View.VISIBLE
                             saveBtn.isEnabled = false
                         }
+
                         is UploadState.Success -> {
                             uploadProgressBar.visibility = View.GONE
                             saveBtn.isEnabled = true
@@ -185,10 +255,15 @@ class EditRecipeFragment : Fragment() {
                             recipeViewModel.resetUploadState()
                             parentFragmentManager.popBackStack()
                         }
+
                         is UploadState.Error -> {
                             uploadProgressBar.visibility = View.GONE
                             saveBtn.isEnabled = true
-                            Toast.makeText(context, "Error: ${state.message}", Toast.LENGTH_LONG).show()
+                            Toast.makeText(
+                                context,
+                                "Error: ${state.message}",
+                                Toast.LENGTH_LONG
+                            ).show()
                             recipeViewModel.resetUploadState()
                         }
                     }
@@ -199,9 +274,12 @@ class EditRecipeFragment : Fragment() {
 
     private fun saveRecipe() {
         val original = currentRecipe ?: return
+
         val title = titleEt.text.toString().trim()
         val instructions = instructionsEt.text.toString().trim()
         val imageUrl = imageEt.text.toString().trim()
+        val ingredients = ingredientsEt.text.toString().trim()
+        val tags = currentTags.joinToString(",")
 
         if (title.isEmpty()) {
             titleEt.error = "Please enter a title"
@@ -211,26 +289,21 @@ class EditRecipeFragment : Fragment() {
         val hasUrl = imageUrl.isNotEmpty()
         val hasDeviceImage = selectedImageUri != null
 
-        // When no new image is picked:
-        // - if user typed a URL, use that
-        // - otherwise keep the existing imageRemoteUrl (Base64 from Firestore) untouched
         val resolvedImageUrl = when {
             hasDeviceImage -> selectedImageUri.toString()
             hasUrl -> imageUrl
             else -> original.imageUrl
         }
 
-        // Build updated recipe, keeping original ID and other fields.
-        // Always preserve imageRemoteUrl unless a new device image was picked
-        // (the repository will re-compress it; if no new image, the repo keeps the existing one).
         val updatedRecipe = original.copy(
             title = title,
             instructions = instructions,
+            ingredients = ingredients,
             imageUrl = resolvedImageUrl,
-            imageRemoteUrl = if (hasDeviceImage) null else original.imageRemoteUrl
+            imageRemoteUrl = if (hasDeviceImage) null else original.imageRemoteUrl,
+            tags = TagValidator.sanitizeTags(tags)
         )
 
         recipeViewModel.updateRecipe(updatedRecipe, selectedImageUri, requireContext())
     }
 }
-

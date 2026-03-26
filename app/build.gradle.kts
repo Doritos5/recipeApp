@@ -83,4 +83,6 @@ dependencies {
 
     // --- GPS ---
     implementation("com.google.android.gms:play-services-location:21.0.1")
+
+    implementation("com.google.android.flexbox:flexbox:3.0.0")
 }

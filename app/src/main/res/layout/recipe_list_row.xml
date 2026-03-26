@@ -1,73 +1,156 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="8dp">
+    android:layout_marginBottom="18dp"
+    app:cardCornerRadius="22dp"
+    app:cardElevation="4dp"
+    app:cardBackgroundColor="#FFFFFF">
 
-    <ImageView
-        android:id="@+id/recipeRowImage"
-        android:layout_width="80dp"
-        android:layout_height="80dp"
-        android:scaleType="centerCrop"
-        android:background="#EEEEEE"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        tools:src="@tools:sample/avatars" />
-
-    <TextView
-        android:id="@+id/recipeRowTitle"
-        android:layout_width="0dp"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:layout_marginStart="12dp"
-        android:layout_marginEnd="8dp"
-        android:text="Recipe Title"
-        app:layout_constraintStart_toEndOf="@id/recipeRowImage"
-        app:layout_constraintTop_toTopOf="@id/recipeRowImage"
-        app:layout_constraintEnd_toStartOf="@id/recipeRowEditBtn" />
+        android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/recipeRowInstructions"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:textSize="14sp"
-        android:maxLines="2"
-        android:ellipsize="end"
-        android:layout_marginTop="4dp"
-        android:text="@string/recipe_instructions_preview"
-        app:layout_constraintStart_toStartOf="@id/recipeRowTitle"
-        app:layout_constraintTop_toBottomOf="@id/recipeRowTitle"
-        app:layout_constraintEnd_toStartOf="@id/recipeRowEditBtn" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingStart="16dp"
+            android:paddingTop="16dp"
+            android:paddingEnd="16dp"
+            android:paddingBottom="12dp"
+            android:gravity="center_vertical">
 
-    <ImageButton
-        android:id="@+id/recipeRowEditBtn"
-        android:layout_width="36dp"
-        android:layout_height="36dp"
-        android:src="@android:drawable/ic_menu_edit"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:contentDescription="@string/edit_recipe"
-        android:visibility="gone"
-        app:layout_constraintEnd_toStartOf="@id/recipeRowDeleteBtn"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        tools:visibility="visible" />
+            <ImageView
+                android:id="@+id/recipeAuthorAvatar"
+                android:layout_width="46dp"
+                android:layout_height="46dp"
+                android:scaleType="centerCrop"
+                android:background="@drawable/bg_login_logo_circle"
+                tools:src="@tools:sample/avatars" />
 
-    <ImageButton
-        android:id="@+id/recipeRowDeleteBtn"
-        android:layout_width="36dp"
-        android:layout_height="36dp"
-        android:src="@android:drawable/ic_menu_delete"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:contentDescription="@string/delete_recipe"
-        android:visibility="gone"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        android:layout_marginStart="4dp"
-        tools:visibility="visible" />
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginStart="12dp">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+                <TextView
+                    android:id="@+id/recipeAuthorName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Amanda Hill"
+                    android:textColor="#111111"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/recipeDate"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="12/08/2025"
+                    android:textColor="#666666"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <ImageView
+            android:id="@+id/recipeRowImage"
+            android:layout_width="match_parent"
+            android:layout_height="260dp"
+            android:scaleType="centerCrop"
+            android:background="#EEEEEE"
+            tools:src="@tools:sample/backgrounds/scenic" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingStart="16dp"
+            android:paddingTop="14dp"
+            android:paddingEnd="16dp"
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:id="@+id/recipeLikeIcon"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:src="@drawable/ic_heart_custom"
+                android:contentDescription="@null" />
+
+            <TextView
+                android:id="@+id/recipeLikesCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="217"
+                android:textColor="#222222"
+                android:textSize="15sp" />
+
+            <ImageView
+                android:id="@+id/recipeCommentIcon"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:layout_marginStart="28dp"
+                android:src="@drawable/ic_comment_custom"
+                android:contentDescription="@null" />
+
+            <TextView
+                android:id="@+id/recipeCommentsCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="38"
+                android:textColor="#222222"
+                android:textSize="15sp" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/recipeRowTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingStart="16dp"
+            android:paddingTop="10dp"
+            android:paddingEnd="16dp"
+            android:text="Classic Pizza Margarita"
+            android:textColor="#111111"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/recipeRowInstructions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingStart="16dp"
+            android:paddingTop="8dp"
+            android:paddingEnd="16dp"
+            android:paddingBottom="16dp"
+            android:text="view all 38 comments"
+            android:textColor="#777777"
+            android:textSize="14sp" />
+
+        <ImageButton
+            android:id="@+id/recipeRowEditBtn"
+            android:layout_width="1dp"
+            android:layout_height="1dp"
+            android:visibility="gone"
+            android:background="@android:color/transparent"
+            android:contentDescription="@string/edit_recipe" />
+
+        <ImageButton
+            android:id="@+id/recipeRowDeleteBtn"
+            android:layout_width="1dp"
+            android:layout_height="1dp"
+            android:visibility="gone"
+            android:background="@android:color/transparent"
+            android:contentDescription="@string/delete_recipe" />
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>
