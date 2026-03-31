@@ -22,11 +22,13 @@ import com.example.recipeapp.R
 import com.example.recipeapp.RecipeViewModel
 import com.example.recipeapp.model.recipes.Recipe
 import com.example.recipeapp.ui.state.UploadState
+import com.example.recipeapp.ui.util.TagChipUtils
 import com.example.recipeapp.util.ImageUtils
 import com.example.recipeapp.util.TagValidator
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.material.textfield.TextInputEditText
+import com.google.android.material.button.MaterialButton
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import java.util.UUID
@@ -36,7 +38,9 @@ class AddRecipeFragment : Fragment() {
 
     private val viewModel: RecipeViewModel by activityViewModels()
 
+    private lateinit var backBtn: ImageView
     private lateinit var titleEt: TextInputEditText
+    private lateinit var ingredientsEt: TextInputEditText
     private lateinit var instructionsEt: TextInputEditText
     private lateinit var imageEt: TextInputEditText
     private lateinit var saveBtn: Button
@@ -45,6 +49,9 @@ class AddRecipeFragment : Fragment() {
     private lateinit var recipeImageView: ImageView
     private lateinit var uploadProgressBar: ProgressBar
     private lateinit var tagsEt: TextInputEditText
+    private lateinit var addTagBtn: MaterialButton
+    private lateinit var tagsChipGroup: com.google.android.material.chip.ChipGroup
+    private val pendingTags = mutableListOf<String>()
 
     private var selectedImageUri: Uri? = null
 
@@ -101,7 +108,10 @@ class AddRecipeFragment : Fragment() {
             getLocation()
         } else {
             requestLocationPermissionLauncher.launch(
-                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
+                arrayOf(
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                )
             )
         }
     }
@@ -120,7 +130,9 @@ class AddRecipeFragment : Fragment() {
     }
 
     private fun initViews(view: View) {
+        backBtn = view.findViewById(R.id.backBtn)
         titleEt = view.findViewById(R.id.addRecipeTitleEt)
+        ingredientsEt = view.findViewById(R.id.addRecipeIngredientsEt)
         instructionsEt = view.findViewById(R.id.addRecipeInstructionsEt)
         imageEt = view.findViewById(R.id.addRecipeImageEt)
         saveBtn = view.findViewById(R.id.addRecipeSaveBtn)
@@ -129,18 +141,59 @@ class AddRecipeFragment : Fragment() {
         recipeImageView = view.findViewById(R.id.addRecipeImageView)
         uploadProgressBar = view.findViewById(R.id.addRecipeProgressBar)
         tagsEt = view.findViewById(R.id.addRecipeTagsEt)
+        addTagBtn = view.findViewById(R.id.addTagBtn)
+        tagsChipGroup = view.findViewById(R.id.tagsChipGroup)
     }
 
     private fun setupListeners() {
+        backBtn.setOnClickListener { parentFragmentManager.popBackStack() }
         cancelBtn.setOnClickListener { parentFragmentManager.popBackStack() }
         pickImageBtn.setOnClickListener { imagePickerLauncher.launch("image/*") }
+
         imageEt.setOnFocusChangeListener { _, hasFocus ->
             if (hasFocus && !imageEt.text.isNullOrEmpty()) {
                 selectedImageUri = null
                 recipeImageView.visibility = View.GONE
             }
         }
+
+        addTagBtn.setOnClickListener {
+            addTagFromInput()
+        }
+
         saveBtn.setOnClickListener { saveRecipe() }
+    }
+
+    private fun addTagFromInput() {
+        val rawInput = tagsEt.text?.toString()?.trim().orEmpty()
+
+        if (rawInput.isEmpty()) {
+            tagsEt.error = "Please enter a tag"
+            return
+        }
+
+        var hasAdded = false
+        var hasDuplicate = false
+
+        TagChipUtils.splitInputTags(rawInput).forEach { tag ->
+            val added = TagChipUtils.addTagIfValid(
+                rawTag = tag,
+                tags = pendingTags,
+                chipGroup = tagsChipGroup,
+                onDuplicate = { hasDuplicate = true },
+                onInvalid = { tagsEt.error = "Please enter a valid tag" }
+            )
+            hasAdded = hasAdded || added
+        }
+
+        when {
+            hasAdded -> {
+                tagsEt.text?.clear()
+                tagsEt.error = null
+            }
+            hasDuplicate -> tagsEt.error = "Tag already added"
+            else -> tagsEt.error = "Please enter a valid tag"
+        }
     }
 
     private fun observeUploadState() {
@@ -177,6 +230,7 @@ class AddRecipeFragment : Fragment() {
 
     private fun saveRecipe() {
         val title = titleEt.text.toString().trim()
+        val ingredients = ingredientsEt.text.toString().trim()
         val instructions = instructionsEt.text.toString().trim()
         val imageUrl = imageEt.text.toString().trim()
 
@@ -185,11 +239,29 @@ class AddRecipeFragment : Fragment() {
             return
         }
 
+        if (ingredients.isEmpty()) {
+            ingredientsEt.error = "Please enter ingredients"
+            return
+        }
+
+        if (instructions.isEmpty()) {
+            instructionsEt.error = "Please enter instructions"
+            return
+        }
+
+        val allTags = mutableListOf<String>()
+        allTags.addAll(pendingTags)
+
+        val typedTags = TagValidator.sanitizeTags(tagsEt.text.toString().trim())
+        allTags.addAll(typedTags)
+
+        val finalTags = pendingTags
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+            .distinctBy { it.lowercase() }
+
         val hasDeviceImage = selectedImageUri != null
 
-        // If a device image was picked, don't store the local file:// path in imageUrl —
-        // the repository will compress it to Base64 and store it in imageRemoteUrl instead.
-        // imageUrl is only used for manual https:// URLs typed into the text field.
         val resolvedImageUrl = when {
             hasDeviceImage -> null
             imageUrl.isNotEmpty() -> imageUrl
@@ -202,12 +274,16 @@ class AddRecipeFragment : Fragment() {
             instructions = instructions,
             imageUrl = resolvedImageUrl,
             description = "",
-            ingredients = "",
+            ingredients = ingredients,
             latitude = currentLat,
             longitude = currentLong,
-            tags = TagValidator.sanitizeTags(tagsEt.text.toString().trim())
+            tags = finalTags
         )
 
-        viewModel.addNewRecipe(newRecipe, if (hasDeviceImage) selectedImageUri else null, requireContext())
+        viewModel.addNewRecipe(
+            newRecipe,
+            if (hasDeviceImage) selectedImageUri else null,
+            requireContext()
+        )
     }
 }

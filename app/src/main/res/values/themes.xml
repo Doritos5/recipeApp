@@ -21,4 +21,15 @@
         <item name="android:windowDrawsSystemBarBackgrounds">true</item>
         <item name="android:windowDisablePreview">true</item>
     </style>
+
+    <style name="ProfileImageCircleShape">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">50dp</item>
+    </style>
+
+    <style name="RecipeImageRoundedShape">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">24dp</item>
+    </style>
+
 </resources>

@@ -19,6 +19,10 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.gson.Gson
 import dagger.hilt.android.AndroidEntryPoint
+import android.app.AlertDialog
+import android.view.WindowManager
+import com.google.android.material.button.MaterialButton
+import com.example.recipeapp.model.recipes.Recipe
 
 @AndroidEntryPoint
 class MyRecipesFragment : Fragment() {
@@ -81,22 +85,7 @@ class MyRecipesFragment : Fragment() {
                 },
                 onDeleteClick = { recipe ->
                     try {
-                        if (!isAdded) return@MyRecipesAdapter
-                        MaterialAlertDialogBuilder(requireActivity())
-                            .setTitle("Delete Recipe")
-                            .setMessage("Are you sure you want to delete \"${recipe.title}\"?")
-                            .setNegativeButton("Cancel", null)
-                            .setPositiveButton("Delete") { _, _ ->
-                                recipeViewModel.deleteRecipe(recipe)
-                                if (isAdded) {
-                                    Toast.makeText(
-                                        requireActivity(),
-                                        "Recipe deleted",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                }
-                            }
-                            .show()
+                        showDeleteRecipeDialog(recipe)
                     } catch (e: Exception) {
                         Log.e("RECIPE_TEST", "Error showing delete dialog: ${e.message}")
                     }
@@ -134,5 +123,45 @@ class MyRecipesFragment : Fragment() {
         }
 
         return view
+    }
+
+    private fun showDeleteRecipeDialog(recipe: Recipe) {
+        if (!isAdded) return
+
+        val dialogView = layoutInflater.inflate(R.layout.dialog_delete_recipe, null)
+
+        val cancelBtn = dialogView.findViewById<MaterialButton>(R.id.deleteDialogCancelBtn)
+        val deleteBtn = dialogView.findViewById<MaterialButton>(R.id.deleteDialogDeleteBtn)
+
+        val dialog = AlertDialog.Builder(requireContext())
+            .setView(dialogView)
+            .create()
+
+        dialog.window?.setBackgroundDrawableResource(R.drawable.bg_dialog_window_transparent)
+        dialog.window?.setLayout(
+            (resources.displayMetrics.widthPixels * 0.90).toInt(),
+            WindowManager.LayoutParams.WRAP_CONTENT
+        )
+
+        dialog.setCancelable(true)
+        dialog.setCanceledOnTouchOutside(true)
+
+        cancelBtn.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        deleteBtn.setOnClickListener {
+            recipeViewModel.deleteRecipe(recipe)
+
+            if (isAdded) {
+                Toast.makeText(requireActivity(), "Recipe deleted", Toast.LENGTH_SHORT).show()
+            }
+
+            dialog.dismiss()
+        }
+
+        dialog.show()
+
+        dialog.window?.setDimAmount(0.55f)
     }
 }

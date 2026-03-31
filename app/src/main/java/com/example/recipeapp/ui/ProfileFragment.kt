@@ -7,11 +7,9 @@ import android.util.Base64
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import android.widget.ImageView
 import android.widget.ProgressBar
-import android.widget.Toast
-import androidx.activity.result.contract.ActivityResultContracts
+import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
@@ -19,49 +17,30 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.example.recipeapp.R
-import com.example.recipeapp.ui.viewmodel.AuthViewModel
 import com.example.recipeapp.ui.viewmodel.ProfileState
 import com.example.recipeapp.ui.viewmodel.ProfileViewModel
-import com.example.recipeapp.util.ImageUtils
-import com.google.android.material.textfield.TextInputEditText
+import com.google.android.material.button.MaterialButton
 import com.squareup.picasso.Picasso
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
-/**
- * ProfileFragment displays and allows editing of the user's profile.
- * Contains logout functionality.
- */
 @AndroidEntryPoint
 class ProfileFragment : Fragment() {
 
     private val profileViewModel: ProfileViewModel by activityViewModels()
-    private val authViewModel: AuthViewModel by activityViewModels()
+
+    private lateinit var backBtn: ImageView
+    private lateinit var profileEditBtn: MaterialButton
 
     private lateinit var profileImageView: ImageView
-    private lateinit var pickImageBtn: Button
-    private lateinit var emailEt: TextInputEditText
-    private lateinit var displayNameEt: TextInputEditText
-    private lateinit var updateBtn: Button
-    private lateinit var logoutBtn: Button
+    private lateinit var emailTv: TextView
+    private lateinit var displayNameTv: TextView
+    private lateinit var userIdTv: TextView
     private lateinit var progressBar: ProgressBar
 
-    private var selectedImageUri: Uri? = null
-
-    // --- Image Picker Launcher ---
-    private val imagePickerLauncher = registerForActivityResult(
-        ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        uri?.let {
-            val savedUri = ImageUtils.copyImageToInternalStorage(requireContext(), it)
-            if (savedUri != null) {
-                selectedImageUri = savedUri
-                profileImageView.setImageURI(savedUri)
-            } else {
-                Toast.makeText(context, "Failed to save image", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
+    private var currentEmail: String = ""
+    private var currentDisplayName: String = ""
+    private var currentUserId: String = ""
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -73,56 +52,29 @@ class ProfileFragment : Fragment() {
         setupListeners()
         observeProfileState()
 
-        // Load profile data
         profileViewModel.loadProfile()
 
         return view
     }
 
     private fun initViews(view: View) {
+        backBtn = view.findViewById(R.id.backBtn)
+        profileEditBtn = view.findViewById(R.id.profileEditBtn)
+
         profileImageView = view.findViewById(R.id.profileImageView)
-        pickImageBtn = view.findViewById(R.id.profilePickImageBtn)
-        emailEt = view.findViewById(R.id.profileEmailEt)
-        displayNameEt = view.findViewById(R.id.profileDisplayNameEt)
-        updateBtn = view.findViewById(R.id.profileUpdateBtn)
-        logoutBtn = view.findViewById(R.id.profileLogoutBtn)
+        emailTv = view.findViewById(R.id.profileEmailTv)
+        displayNameTv = view.findViewById(R.id.profileDisplayNameTv)
+        userIdTv = view.findViewById(R.id.profileUserIdTv)
         progressBar = view.findViewById(R.id.profileProgressBar)
     }
 
     private fun setupListeners() {
-        pickImageBtn.setOnClickListener {
-            imagePickerLauncher.launch("image/*")
+        backBtn.setOnClickListener {
+            findNavController().navigateUp()
         }
 
-        updateBtn.setOnClickListener {
-            val newName = displayNameEt.text.toString().trim()
-
-            // Update display name if changed
-            if (newName.isNotEmpty()) {
-                profileViewModel.updateDisplayName(newName)
-            }
-
-            // Upload new profile image if selected
-            if (selectedImageUri != null) {
-                profileViewModel.updateProfileImage(selectedImageUri!!, requireContext())
-            }
-
-            if (newName.isEmpty() && selectedImageUri == null) {
-                Toast.makeText(context, "Nothing to update", Toast.LENGTH_SHORT).show()
-            }
-        }
-
-        logoutBtn.setOnClickListener {
-            // Sign out via AuthViewModel
-            authViewModel.logout()
-            // Navigate to login, clearing entire back stack
-            findNavController().navigate(
-                R.id.loginFragment,
-                null,
-                androidx.navigation.NavOptions.Builder()
-                    .setPopUpTo(R.id.nav_graph, true)
-                    .build()
-            )
+        profileEditBtn.setOnClickListener {
+            findNavController().navigate(R.id.action_profileFragment_to_editProfileFragment)
         }
     }
 
@@ -134,23 +86,28 @@ class ProfileFragment : Fragment() {
                         is ProfileState.Idle -> {
                             progressBar.visibility = View.GONE
                         }
+
                         is ProfileState.Loading -> {
                             progressBar.visibility = View.VISIBLE
-                            updateBtn.isEnabled = false
                         }
+
                         is ProfileState.Loaded -> {
                             progressBar.visibility = View.GONE
-                            updateBtn.isEnabled = true
 
-                            emailEt.setText(state.email)
-                            displayNameEt.setText(state.displayName)
+                            currentEmail = state.email
+                            currentDisplayName = state.displayName
+                            currentUserId = state.userId
 
-                            // Load profile image: Base64 data URI, local file://, or remote https://
+                            emailTv.text = if (currentEmail.isNotBlank()) currentEmail else "-"
+                            displayNameTv.text =
+                                if (currentDisplayName.isNotBlank()) currentDisplayName else "No name"
+                            userIdTv.text =
+                                if (currentUserId.isNotBlank()) currentUserId else "-"
+
                             val imageUrl = state.profileImageUrl
                             if (!imageUrl.isNullOrEmpty()) {
                                 when {
                                     imageUrl.startsWith("data:image") -> {
-                                        // Base64 encoded image stored in Firestore
                                         try {
                                             val base64 = imageUrl.substringAfter("base64,")
                                             val bytes = Base64.decode(base64, Base64.NO_WRAP)
@@ -160,12 +117,12 @@ class ProfileFragment : Fragment() {
                                             profileImageView.setImageResource(R.drawable.icon_account)
                                         }
                                     }
+
                                     imageUrl.startsWith("file://") || imageUrl.startsWith("content://") -> {
-                                        // Local image — load directly via URI
                                         profileImageView.setImageURI(Uri.parse(imageUrl))
                                     }
+
                                     else -> {
-                                        // Remote https:// URL — load via Picasso
                                         Picasso.get()
                                             .load(imageUrl)
                                             .placeholder(R.drawable.icon_account)
@@ -177,16 +134,14 @@ class ProfileFragment : Fragment() {
                                 profileImageView.setImageResource(R.drawable.icon_account)
                             }
                         }
+
                         is ProfileState.Updated -> {
                             progressBar.visibility = View.GONE
-                            updateBtn.isEnabled = true
-                            Toast.makeText(context, state.message, Toast.LENGTH_SHORT).show()
-                            selectedImageUri = null
+                            profileViewModel.loadProfile()
                         }
+
                         is ProfileState.Error -> {
                             progressBar.visibility = View.GONE
-                            updateBtn.isEnabled = true
-                            Toast.makeText(context, state.message, Toast.LENGTH_LONG).show()
                         }
                     }
                 }
@@ -194,4 +149,3 @@ class ProfileFragment : Fragment() {
         }
     }
 }
-
