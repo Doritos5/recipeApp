@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/recipesListFragment"
+            android:icon="@drawable/ic_home_drawer"
+            android:title="Home" />
+
+        <item
+            android:id="@+id/addRecipeFragment"
+            android:icon="@drawable/ic_add_circle_drawer"
+            android:title="Create New Recipe" />
+
+        <item
+            android:id="@+id/myRecipesFragment"
+            android:icon="@drawable/ic_star_drawer"
+            android:title="My Recipes" />
+
+        <item
+            android:id="@+id/profileFragment"
+            android:icon="@drawable/ic_profile_drawer"
+            android:title="Profile" />
+
+<!--        <item-->
+<!--            android:id="@+id/nearbySupermarketFragment"-->
+<!--            android:icon="@drawable/ic_location_drawer"-->
+<!--            android:title="Nearby Supermarket" />-->
+    </group>
+
+    <item
+        android:id="@+id/menu_logout"
+        android:title="Logout"
+        android:icon="@drawable/ic_logout_drawer" />
+</menu>

@@ -24,10 +24,10 @@ import com.example.recipeapp.R
 import com.example.recipeapp.RecipeViewModel
 import com.example.recipeapp.model.recipes.Recipe
 import com.example.recipeapp.ui.state.UploadState
+import com.example.recipeapp.ui.util.TagChipUtils
 import com.example.recipeapp.util.ImageUtils
 import com.example.recipeapp.util.TagValidator
 import com.google.android.material.button.MaterialButton
-import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 import com.google.android.material.textfield.TextInputEditText
 import com.squareup.picasso.Picasso
@@ -125,11 +125,9 @@ class EditRecipeFragment : Fragment() {
             val rawInput = tagsEt.text.toString().trim()
 
             if (rawInput.isNotEmpty()) {
-                rawInput.split(",")
-                    .map { it.trim() }
-                    .filter { it.isNotEmpty() }
-                    .forEach { addTagChip(it) }
-
+                TagChipUtils.splitInputTags(rawInput).forEach { tag ->
+                    TagChipUtils.addTagIfValid(tag, currentTags, tagsChipGroup)
+                }
                 tagsEt.text?.clear()
             }
         }
@@ -146,46 +144,8 @@ class EditRecipeFragment : Fragment() {
         }
     }
 
-    private fun addTagChip(tag: String) {
-        val cleanTag = tag.trim().removePrefix("#")
-        if (cleanTag.isBlank()) return
-        if (currentTags.any { it.equals(cleanTag, ignoreCase = true) }) return
-
-        currentTags.add(cleanTag)
-
-        val chip = Chip(requireContext()).apply {
-            text = "#$cleanTag"
-            isClickable = false
-            isCheckable = false
-            isCloseIconVisible = true
-
-            setTextColor(Color.WHITE)
-            closeIconTint = ColorStateList.valueOf(Color.WHITE)
-            chipBackgroundColor = ColorStateList.valueOf(Color.parseColor("#EE7DA8"))
-
-            chipCornerRadius = 18f
-            chipStrokeWidth = 0f
-            chipMinHeight = 36f
-
-            setEnsureMinTouchTargetSize(false)
-            rippleColor = null
-
-            setOnCloseIconClickListener {
-                currentTags.remove(cleanTag)
-                tagsChipGroup.removeView(this)
-            }
-        }
-
-        tagsChipGroup.addView(chip)
-    }
-
     private fun renderExistingTags(tags: List<String>) {
-        currentTags.clear()
-        tagsChipGroup.removeAllViews()
-
-        tags.forEach { tag ->
-            addTagChip(tag)
-        }
+        TagChipUtils.renderTags(currentTags, tagsChipGroup, tags)
     }
 
     private fun loadRecipe() {

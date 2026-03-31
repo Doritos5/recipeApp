@@ -18,31 +18,24 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
-/**
- * Represents the state of the user profile screen.
- */
 sealed class ProfileState {
     object Idle : ProfileState()
     object Loading : ProfileState()
+
     data class Loaded(
         val displayName: String,
         val email: String,
-        val profileImageUrl: String?
+        val profileImageUrl: String?,
+        val userId: String,
+        val username: String,
+        val firstName: String,
+        val lastName: String
     ) : ProfileState()
+
     data class Updated(val message: String) : ProfileState()
     data class Error(val message: String) : ProfileState()
 }
 
-/**
- * ProfileViewModel handles user profile display and editing.
- *
- * Profile image strategy:
- * 1. Upload to Firebase Storage → get a remote https:// URL
- * 2. Save that URL to Cloud Firestore (users/{uid}.imageUrl)  ← cloud-persistent
- * 3. Update Firebase Auth photoUrl
- * 4. Cache in local Room DB
- * Falls back to saving locally if Firebase Storage is unavailable (Spark plan / offline).
- */
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
     private val authManager: UserAuthManager,
@@ -54,10 +47,6 @@ class ProfileViewModel @Inject constructor(
     private val _profileState = MutableStateFlow<ProfileState>(ProfileState.Idle)
     val profileState: StateFlow<ProfileState> = _profileState.asStateFlow()
 
-    /**
-     * Loads the current user's profile.
-     * Image priority: Room local cache → Firestore → Firebase Auth photoUrl.
-     */
     fun loadProfile() {
         val firebaseUser = authManager.getCurrentUser()
         if (firebaseUser == null) {
@@ -70,14 +59,13 @@ class ProfileViewModel @Inject constructor(
                 userDao.getUserById(firebaseUser.uid)
             }
 
-            // If Room has no image, fetch from Firestore (the cloud source of truth)
+            val firestoreData = userRepository.getUser(firebaseUser.uid)
+
             var imageUrl = localUser?.imageUrl
             if (imageUrl.isNullOrEmpty()) {
-                val firestoreData = userRepository.getUser(firebaseUser.uid)
                 val firestoreUrl = firestoreData?.get("imageUrl") as? String
                 if (!firestoreUrl.isNullOrEmpty()) {
                     imageUrl = firestoreUrl
-                    // Cache in Room for next time
                     withContext(Dispatchers.IO) {
                         val existing = userDao.getUserById(firebaseUser.uid)
                         if (existing != null) {
@@ -89,23 +77,55 @@ class ProfileViewModel @Inject constructor(
                 }
             }
 
+            val firestoreFirstName = firestoreData?.get("firstName") as? String ?: ""
+            val firestoreLastName = firestoreData?.get("lastName") as? String ?: localUser?.lastName.orEmpty()
+            val firestoreUsername = firestoreData?.get("username") as? String ?: localUser?.username.orEmpty()
+            val firestoreName = firestoreData?.get("name") as? String ?: localUser?.name.orEmpty()
+
+            val resolvedDisplayName = when {
+                !firebaseUser.displayName.isNullOrBlank() -> firebaseUser.displayName!!
+                firestoreName.isNotBlank() -> firestoreName
+                !localUser?.name.isNullOrBlank() -> localUser?.name.orEmpty()
+                else -> ""
+            }
+
+            val resolvedFirstName = if (firestoreFirstName.isNotBlank()) {
+                firestoreFirstName
+            } else {
+                resolvedDisplayName.split(" ").firstOrNull().orEmpty()
+            }
+
+            val resolvedLastName = if (firestoreLastName.isNotBlank()) {
+                firestoreLastName
+            } else {
+                resolvedDisplayName.split(" ").drop(1).joinToString(" ")
+            }
+
+            val resolvedUsername = if (firestoreUsername.isNotBlank()) {
+                firestoreUsername
+            } else {
+                resolvedDisplayName
+            }
+
             _profileState.value = ProfileState.Loaded(
-                displayName = firebaseUser.displayName ?: localUser?.name ?: "",
+                displayName = resolvedDisplayName,
                 email = firebaseUser.email ?: localUser?.email ?: "",
-                profileImageUrl = imageUrl
+                profileImageUrl = imageUrl,
+                userId = firebaseUser.uid,
+                username = resolvedUsername,
+                firstName = resolvedFirstName,
+                lastName = resolvedLastName
             )
         }
     }
 
-    /**
-     * Updates the display name in Firebase Auth + Firestore + local Room.
-     */
     fun updateDisplayName(name: String) {
         val userId = authManager.getCurrentUserId() ?: return
         viewModelScope.launch {
             _profileState.value = ProfileState.Loading
             try {
                 authManager.updateDisplayName(name)
+
                 userRepository.createOrUpdateUser(
                     uid = userId,
                     email = authManager.getEmail(),
@@ -117,11 +137,13 @@ class ProfileViewModel @Inject constructor(
                     if (existing != null) {
                         userDao.updateUser(existing.copy(name = name))
                     } else {
-                        userDao.createUser(User(
-                            uid = userId,
-                            name = name,
-                            email = authManager.getEmail() ?: ""
-                        ))
+                        userDao.createUser(
+                            User(
+                                uid = userId,
+                                name = name,
+                                email = authManager.getEmail() ?: ""
+                            )
+                        )
                     }
                 }
 
@@ -134,55 +156,134 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
-    /**
-     * Saves the profile image to Firestore as a compressed Base64 data URI.
-     * This works on the free Spark plan — no Firebase Storage needed.
-     *
-     * Flow:
-     *  1. Compress image → Base64 string (stored directly in Firestore users/{uid}.imageUrl)
-     *  2. Save to Firestore  ← cloud source of truth, visible on every device
-     *  3. Update Firebase Auth photoUrl (best-effort, may fail for long strings)
-     *  4. Cache in local Room DB
-     */
+    fun updateProfileDetails(
+        username: String,
+        firstName: String,
+        lastName: String,
+        currentPassword: String?,
+        newPassword: String?
+    ) {
+        val userId = authManager.getCurrentUserId() ?: return
+
+        viewModelScope.launch {
+            _profileState.value = ProfileState.Loading
+            try {
+                val currentUser = authManager.getCurrentUser()
+                    ?: throw IllegalStateException("No user logged in")
+
+                val trimmedUsername = username.trim()
+                val trimmedFirstName = firstName.trim()
+                val trimmedLastName = lastName.trim()
+                val trimmedCurrentPassword = currentPassword?.trim().orEmpty()
+                val trimmedNewPassword = newPassword?.trim().orEmpty()
+
+                val fullName = listOf(trimmedFirstName, trimmedLastName)
+                    .filter { it.isNotBlank() }
+                    .joinToString(" ")
+                    .ifBlank { trimmedUsername.ifBlank { currentUser.displayName.orEmpty() } }
+
+                val passwordChanged = trimmedNewPassword.isNotBlank()
+
+                if (passwordChanged) {
+                    if (trimmedCurrentPassword.isBlank()) {
+                        throw IllegalStateException("Please enter your current password")
+                    }
+                    authManager.reauthenticate(trimmedCurrentPassword)
+
+                    if (trimmedNewPassword.length < 6) {
+                        throw IllegalStateException("New password must be at least 6 characters")
+                    }
+
+                    authManager.updatePassword(trimmedNewPassword)
+                }
+
+                if (fullName.isNotBlank() && fullName != currentUser.displayName.orEmpty()) {
+                    authManager.updateDisplayName(fullName)
+                }
+
+                userRepository.createOrUpdateUser(
+                    uid = userId,
+                    email = currentUser.email.orEmpty(),
+                    name = fullName,
+                    firstName = trimmedFirstName,
+                    lastName = trimmedLastName,
+                    username = trimmedUsername
+                )
+
+                withContext(Dispatchers.IO) {
+                    val existing = userDao.getUserById(userId)
+                    if (existing != null) {
+                        userDao.updateUser(
+                            existing.copy(
+                                name = fullName,
+                                lastName = trimmedLastName,
+                                username = trimmedUsername,
+                                email = currentUser.email.orEmpty()
+                            )
+                        )
+                    } else {
+                        userDao.createUser(
+                            User(
+                                uid = userId,
+                                name = fullName,
+                                lastName = trimmedLastName,
+                                username = trimmedUsername,
+                                email = currentUser.email.orEmpty()
+                            )
+                        )
+                    }
+                }
+
+                loadProfile()
+                _profileState.value = ProfileState.Updated("Profile updated!")
+            } catch (e: Exception) {
+                Log.e("PROFILE", "Failed to update profile details: ${e.message}", e)
+                _profileState.value = ProfileState.Error(
+                    e.message ?: "Failed to update profile details"
+                )
+            }
+        }
+    }
+
     fun updateProfileImage(imageUri: Uri, context: android.content.Context) {
         val userId = authManager.getCurrentUserId() ?: return
         viewModelScope.launch {
             _profileState.value = ProfileState.Loading
             try {
-                // 1. Compress image to a Base64 data URI on IO thread
                 val base64DataUri = withContext(Dispatchers.IO) {
                     storageService.compressProfileImageToBase64(context, imageUri)
                 }
                 Log.d("PROFILE", "Profile image compressed to Base64 (${base64DataUri.length} chars)")
 
-                // 2. Save Base64 URL to Firestore (cloud source of truth — works on Spark plan)
                 userRepository.createOrUpdateUser(
                     uid = userId,
                     email = authManager.getEmail(),
                     name = authManager.getDisplayName(),
                     imageUrl = base64DataUri
                 )
-                Log.d("PROFILE", "Profile image Base64 saved to Firestore")
 
-                // 3. Update Firebase Auth photoUrl (best-effort — Auth has a URL length limit)
                 try {
                     authManager.updateProfileImage(base64DataUri)
                 } catch (e: Exception) {
-                    Log.w("PROFILE", "Could not update Firebase Auth photoUrl (data URI too long): ${e.message}")
+                    Log.w(
+                        "PROFILE",
+                        "Could not update Firebase Auth photoUrl (data URI too long): ${e.message}"
+                    )
                 }
 
-                // 4. Cache in local Room
                 withContext(Dispatchers.IO) {
                     val existing = userDao.getUserById(userId)
                     if (existing != null) {
                         userDao.updateUser(existing.copy(imageUrl = base64DataUri))
                     } else {
-                        userDao.createUser(User(
-                            uid = userId,
-                            name = authManager.getDisplayName() ?: "",
-                            email = authManager.getEmail() ?: "",
-                            imageUrl = base64DataUri
-                        ))
+                        userDao.createUser(
+                            User(
+                                uid = userId,
+                                name = authManager.getDisplayName() ?: "",
+                                email = authManager.getEmail() ?: "",
+                                imageUrl = base64DataUri
+                            )
+                        )
                     }
                 }
 
@@ -199,4 +300,3 @@ class ProfileViewModel @Inject constructor(
         loadProfile()
     }
 }
-

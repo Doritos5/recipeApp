@@ -14,6 +14,7 @@ import com.example.recipeapp.R
 import com.example.recipeapp.RecipeViewModel
 import com.google.gson.Gson
 import dagger.hilt.android.AndroidEntryPoint
+import com.example.recipeapp.MainActivity
 
 @AndroidEntryPoint
 class RecipesListFragment : Fragment() {
@@ -61,6 +62,11 @@ class RecipesListFragment : Fragment() {
 
         // 3. Fetch fresh data
         viewModel.reloadRecipes()
+
+        val menuIcon: View = view.findViewById(R.id.menuIcon)
+        menuIcon.setOnClickListener {
+            (activity as? MainActivity)?.openDrawer()
+        }
 
         val fab: View = view.findViewById(R.id.addRecipeFab)
         fab.setOnClickListener {

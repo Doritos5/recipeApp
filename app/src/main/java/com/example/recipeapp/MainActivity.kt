@@ -1,38 +1,90 @@
 package com.example.recipeapp
 
 import android.os.Bundle
-import android.view.View
+import android.widget.ImageView
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.GravityCompat
+import androidx.drawerlayout.widget.DrawerLayout
+import androidx.navigation.NavOptions
 import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
-import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.example.recipeapp.ui.viewmodel.AuthViewModel
+import com.google.android.material.navigation.NavigationView
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
+
+    private lateinit var drawerLayout: DrawerLayout
+    private lateinit var navigationView: NavigationView
+    private val authViewModel: AuthViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        drawerLayout = findViewById(R.id.drawer_layout)
+        drawerLayout.setStatusBarBackgroundColor(android.graphics.Color.TRANSPARENT)
+
+        navigationView = findViewById(R.id.navigation_view)
+
+        val headerView = navigationView.getHeaderView(0)
+        val closeBtn = headerView.findViewById<ImageView>(R.id.drawerCloseBtn)
+
+        closeBtn.setOnClickListener {
+            closeDrawer()
+        }
 
         val navHostFragment = supportFragmentManager
             .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         val navController = navHostFragment.navController
 
-        val bottomNav = findViewById<BottomNavigationView>(R.id.bottom_nav)
-        bottomNav.setupWithNavController(navController)
-
-        // Show bottom nav only on the main screens (after login)
-        navController.addOnDestinationChangedListener { _, destination, _ ->
-            when (destination.id) {
+        AppBarConfiguration(
+            setOf(
                 R.id.recipesListFragment,
                 R.id.myRecipesFragment,
-                R.id.profileFragment -> {
-                    bottomNav.visibility = View.VISIBLE
+                R.id.profileFragment,
+                R.id.addRecipeFragment
+            ),
+            drawerLayout
+        )
+
+        navigationView.setupWithNavController(navController)
+
+        navigationView.setNavigationItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.menu_logout -> {
+                    authViewModel.logout()
+                    val navOptions = NavOptions.Builder()
+                        .setPopUpTo(navController.graph.startDestinationId, true)
+                        .build()
+                    navController.navigate(R.id.loginFragment, null, navOptions)
+                    drawerLayout.closeDrawer(GravityCompat.START)
+                    true
                 }
+
                 else -> {
-                    bottomNav.visibility = View.GONE
+                    val handled = try {
+                        navController.navigate(item.itemId)
+                        true
+                    } catch (_: Exception) {
+                        false
+                    }
+
+                    drawerLayout.closeDrawer(GravityCompat.START)
+                    handled
                 }
             }
         }
+    }
+
+    fun openDrawer() {
+        drawerLayout.openDrawer(GravityCompat.START)
+    }
+
+    fun closeDrawer() {
+        drawerLayout.closeDrawer(GravityCompat.START)
     }
 }
