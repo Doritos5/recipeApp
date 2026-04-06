@@ -2,6 +2,7 @@ package com.example.recipeapp.model.recipes
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.google.gson.annotations.JsonAdapter
 import com.google.gson.annotations.SerializedName
 
 // Dor comment - we need to have ' = "" ' for every parameter because when firebase gets data from internet
@@ -17,7 +18,8 @@ data class Recipe(
     val title: String = "",
 
     @SerializedName("strInstructions")
-    val instructions: String? = null,
+    @JsonAdapter(InstructionsListAdapter::class)
+    val instructions: List<String> = emptyList(),
 
     @SerializedName("strMealThumb")
     val imageUrl: String? = null,
@@ -25,6 +27,8 @@ data class Recipe(
     val description: String? = "",
     val ingredients: String? = "",
     val authorId: String? = null,
+    val authorName: String = "",
+    val createdAt: Long = 0L,
     val imageRemoteUrl: String? = null,
     val latitude: Double? = 0.0,
     val longitude: Double? = 0.0,

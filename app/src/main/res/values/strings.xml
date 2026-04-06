@@ -40,4 +40,9 @@
     <string name="profile_image">Profile image</string>
     <string name="no_recipes_yet">No recipes yet. Add your first recipe!</string>
     <string name="guest_mode">You are browsing as a guest. Log in to see your recipes.</string>
+    <string name="guest_profile_title">Guest User</string>
+    <string name="guest_profile_message">You are still not signed up. Sign up or log in to create and edit your profile.</string>
+    <string name="guest_profile_edit_blocked">You are not signed up yet. Please log in to edit your profile.</string>
+    <string name="guest_add_recipe_blocked">You are not signed up yet. Please log in to add a recipe.</string>
+    <string name="guest_blocked_action">This action is available only for signed-in users.</string>
 </resources>

@@ -16,6 +16,9 @@ import com.google.android.flexbox.FlexboxLayout
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.squareup.picasso.Picasso
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class RecipeDetailFragment : Fragment(R.layout.fragment_recipe_detail) {
 
@@ -31,14 +34,16 @@ class RecipeDetailFragment : Fragment(R.layout.fragment_recipe_detail) {
         val imageUrl = arguments?.getString("imageUrl")
         val imageRemoteUrl = arguments?.getString("imageRemoteUrl")
         val tagsJson = arguments?.getString("tags")
+        val authorName = arguments?.getString("authorName").orEmpty()
+        val createdAt = arguments?.getLong("createdAt", 0L) ?: 0L
+        val ingredients = arguments?.getString("ingredients").orEmpty()
 
         binding.detailTitleTv.text = title
         binding.instructionsContentTv.text = instructions
 
-        // TODO: get info from DB
-        binding.detailAuthorTv.text = "Recipe User"
-        binding.detailDateTv.text = "12/08/2025"
-        binding.ingredientsContentTv.text = "• Ingredients not available yet"
+        binding.detailAuthorTv.text = if (authorName.isNotBlank()) authorName else "Recipe User"
+        binding.detailDateTv.text = formatCreatedAt(createdAt)
+        binding.ingredientsContentTv.text = formatIngredients(ingredients)
 
         // Display tags dynamically
         displayTags(tagsJson)
@@ -78,6 +83,25 @@ class RecipeDetailFragment : Fragment(R.layout.fragment_recipe_detail) {
             }
         } else {
             binding.detailImageIv.setImageResource(R.drawable.ic_launcher_foreground)
+        }
+    }
+
+    private fun formatCreatedAt(createdAt: Long): String {
+        if (createdAt <= 0L) return "Unknown date"
+        val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+        return formatter.format(Date(createdAt))
+    }
+
+    private fun formatIngredients(raw: String): String {
+        if (raw.isBlank()) return "• Ingredients not available yet"
+        val items = raw
+            .split("\n", ",")
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+        return if (items.isEmpty()) {
+            "• Ingredients not available yet"
+        } else {
+            items.joinToString("\n") { "• $it" }
         }
     }
 

@@ -13,6 +13,9 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.recipeapp.R
 import com.example.recipeapp.model.recipes.Recipe
 import com.squareup.picasso.Picasso
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 /**
  * RecipesAdapter displays a list of recipes in a RecyclerView.
@@ -54,6 +57,19 @@ class RecipesAdapter(
         return RecipeViewHolder(view)
     }
 
+    private fun formatCreatedAt(createdAt: Long): String {
+        if (createdAt <= 0L) return "Unknown date"
+        val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+        return formatter.format(Date(createdAt))
+    }
+
+    private fun formatInstructionsPreview(instructions: List<String>, maxLines: Int = 2): String {
+        if (instructions.isEmpty()) return ""
+        val lines = instructions.take(maxLines)
+        val suffix = if (instructions.size > maxLines) "..." else ""
+        return (lines + suffix).joinToString("\n")
+    }
+
     override fun onBindViewHolder(holder: RecipeViewHolder, position: Int) {
         val recipe = recipes[position]
         holder.itemView.setOnClickListener {
@@ -63,12 +79,11 @@ class RecipesAdapter(
         // 1. Set text data
         holder.titleTextView.text = recipe.title
 
-        // TODO: Replace placeholder values with real data from Firestore.
-        holder.authorNameTextView.text = "Recipe User"
-        holder.dateTextView.text = "12/08/2025"
+        holder.authorNameTextView.text = recipe.authorName.ifBlank { "Recipe User" }
+        holder.dateTextView.text = formatCreatedAt(recipe.createdAt)
         holder.likesCountTextView.text = "217"
         holder.commentsCountTextView.text = "38"
-        holder.instructionsTextView.text = "view all 38 comments"
+        holder.instructionsTextView.text = formatInstructionsPreview(recipe.instructions)
 
         // 2. Show/hide action buttons based on callbacks
         if (onEditClick != null) {

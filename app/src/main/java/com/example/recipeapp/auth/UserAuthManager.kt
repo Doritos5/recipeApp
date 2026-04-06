@@ -22,6 +22,7 @@ class UserAuthManager @Inject constructor(
     fun getCurrentUserId(): String? = firebaseAuth.currentUser?.uid
     fun getCurrentUser(): FirebaseUser? = firebaseAuth.currentUser
     fun isLoggedIn(): Boolean = firebaseAuth.currentUser != null
+    fun isGuest(): Boolean = firebaseAuth.currentUser == null
     fun getDisplayName(): String? = firebaseAuth.currentUser?.displayName
     fun getEmail(): String? = firebaseAuth.currentUser?.email
     fun getProfileImageUrl(): String? = firebaseAuth.currentUser?.photoUrl?.toString()

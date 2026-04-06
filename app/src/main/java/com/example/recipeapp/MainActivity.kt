@@ -2,6 +2,7 @@ package com.example.recipeapp
 
 import android.os.Bundle
 import android.widget.ImageView
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
@@ -10,9 +11,11 @@ import androidx.navigation.NavOptions
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
+import com.example.recipeapp.auth.UserAuthManager
 import com.example.recipeapp.ui.viewmodel.AuthViewModel
 import com.google.android.material.navigation.NavigationView
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -20,6 +23,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var drawerLayout: DrawerLayout
     private lateinit var navigationView: NavigationView
     private val authViewModel: AuthViewModel by viewModels()
+
+    @Inject
+    lateinit var userAuthManager: UserAuthManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -66,6 +72,12 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 else -> {
+                    if (isGuestBlockedDestination(item.itemId)) {
+                        Toast.makeText(this, getString(R.string.guest_blocked_action), Toast.LENGTH_SHORT).show()
+                        drawerLayout.closeDrawer(GravityCompat.START)
+                        return@setNavigationItemSelectedListener true
+                    }
+
                     val handled = try {
                         navController.navigate(item.itemId)
                         true
@@ -78,6 +90,13 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    private fun isGuestBlockedDestination(destinationId: Int): Boolean {
+        if (!userAuthManager.isGuest()) return false
+        return destinationId == R.id.profileFragment ||
+                destinationId == R.id.editProfileFragment ||
+                destinationId == R.id.addRecipeFragment
     }
 
     fun openDrawer() {
