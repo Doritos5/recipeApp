@@ -38,10 +38,12 @@ class RecipesListFragment : Fragment() {
             onRecipeClick = { recipe ->
                 val bundle = Bundle().apply {
                     putString("title", recipe.title)
-                    putString("instructions", recipe.instructions)
+                    putString("instructions", recipe.instructions.joinToString("\n"))
+                    putString("authorName", recipe.authorName)
+                    putLong("createdAt", recipe.createdAt)
+                    putString("ingredients", recipe.ingredients)
                     putString("imageUrl", recipe.imageUrl)
                     putString("imageRemoteUrl", recipe.imageRemoteUrl)
-                    // Add tags as JSON array string
                     putString("tags", Gson().toJson(recipe.tags))
                 }
 

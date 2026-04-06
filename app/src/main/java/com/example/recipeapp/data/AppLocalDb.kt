@@ -9,7 +9,7 @@ import com.example.recipeapp.model.recipes.Recipe
 import com.example.recipeapp.model.users.User
 import com.example.recipeapp.model.users.UserDao
 
-@Database(entities = [Recipe::class, User::class], version = 5, exportSchema = false)
+@Database(entities = [Recipe::class, User::class], version = 6, exportSchema = false)
 @TypeConverters(Converters::class)
 abstract class AppLocalDb : RoomDatabase() {
     abstract fun recipeDao(): RecipeDao

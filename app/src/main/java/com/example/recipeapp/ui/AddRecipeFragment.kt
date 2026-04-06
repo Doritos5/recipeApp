@@ -20,6 +20,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.example.recipeapp.R
 import com.example.recipeapp.RecipeViewModel
+import com.example.recipeapp.auth.UserAuthManager
 import com.example.recipeapp.model.recipes.Recipe
 import com.example.recipeapp.ui.state.UploadState
 import com.example.recipeapp.ui.util.TagChipUtils
@@ -27,11 +28,13 @@ import com.example.recipeapp.util.ImageUtils
 import com.example.recipeapp.util.TagValidator
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
-import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.textfield.TextInputEditText
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import java.util.UUID
+import javax.inject.Inject
+import androidx.navigation.fragment.findNavController
 
 @AndroidEntryPoint
 class AddRecipeFragment : Fragment() {
@@ -58,6 +61,9 @@ class AddRecipeFragment : Fragment() {
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private var currentLat: Double? = 0.0
     private var currentLong: Double? = 0.0
+
+    @Inject
+    lateinit var userAuthManager: UserAuthManager
 
     private val imagePickerLauncher = registerForActivityResult(
         ActivityResultContracts.GetContent()
@@ -91,6 +97,12 @@ class AddRecipeFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        if (userAuthManager.isGuest()) {
+            Toast.makeText(requireContext(), getString(R.string.guest_add_recipe_blocked), Toast.LENGTH_SHORT).show()
+            findNavController().navigateUp()
+            return null
+        }
+
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
         val view = inflater.inflate(R.layout.fragment_add_recipe, container, false)
         initViews(view)
@@ -228,7 +240,18 @@ class AddRecipeFragment : Fragment() {
         }
     }
 
+    private fun toInstructionSteps(raw: String): List<String> {
+        return raw.lines()
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+    }
+
     private fun saveRecipe() {
+        if (userAuthManager.isGuest()) {
+            Toast.makeText(requireContext(), getString(R.string.guest_add_recipe_blocked), Toast.LENGTH_SHORT).show()
+            return
+        }
+
         val title = titleEt.text.toString().trim()
         val ingredients = ingredientsEt.text.toString().trim()
         val instructions = instructionsEt.text.toString().trim()
@@ -271,10 +294,12 @@ class AddRecipeFragment : Fragment() {
         val newRecipe = Recipe(
             id = UUID.randomUUID().toString(),
             title = title,
-            instructions = instructions,
+            instructions = toInstructionSteps(instructions),
             imageUrl = resolvedImageUrl,
             description = "",
             ingredients = ingredients,
+            authorName = "Recipe User",
+            createdAt = System.currentTimeMillis(),
             latitude = currentLat,
             longitude = currentLong,
             tags = finalTags

@@ -148,6 +148,12 @@ class EditRecipeFragment : Fragment() {
         TagChipUtils.renderTags(currentTags, tagsChipGroup, tags)
     }
 
+    private fun toInstructionSteps(raw: String): List<String> {
+        return raw.lines()
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+    }
+
     private fun loadRecipe() {
         val recipeId = args.recipeId
 
@@ -155,7 +161,7 @@ class EditRecipeFragment : Fragment() {
             if (recipe != null && currentRecipe == null) {
                 currentRecipe = recipe
                 titleEt.setText(recipe.title)
-                instructionsEt.setText(recipe.instructions ?: "")
+                instructionsEt.setText(recipe.instructions.joinToString("\n"))
                 ingredientsEt.setText(recipe.ingredients ?: "")
                 renderExistingTags(recipe.tags)
 
@@ -257,7 +263,7 @@ class EditRecipeFragment : Fragment() {
 
         val updatedRecipe = original.copy(
             title = title,
-            instructions = instructions,
+            instructions = toInstructionSteps(instructions),
             ingredients = ingredients,
             imageUrl = resolvedImageUrl,
             imageRemoteUrl = if (hasDeviceImage) null else original.imageRemoteUrl,

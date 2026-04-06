@@ -10,6 +10,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
@@ -17,12 +18,14 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.example.recipeapp.R
+import com.example.recipeapp.auth.UserAuthManager
 import com.example.recipeapp.ui.viewmodel.ProfileState
 import com.example.recipeapp.ui.viewmodel.ProfileViewModel
 import com.google.android.material.button.MaterialButton
 import com.squareup.picasso.Picasso
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class ProfileFragment : Fragment() {
@@ -41,6 +44,9 @@ class ProfileFragment : Fragment() {
     private var currentEmail: String = ""
     private var currentDisplayName: String = ""
     private var currentUserId: String = ""
+
+    @Inject
+    lateinit var userAuthManager: UserAuthManager
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -74,6 +80,10 @@ class ProfileFragment : Fragment() {
         }
 
         profileEditBtn.setOnClickListener {
+            if (userAuthManager.isGuest()) {
+                Toast.makeText(requireContext(), getString(R.string.guest_profile_edit_blocked), Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
             findNavController().navigate(R.id.action_profileFragment_to_editProfileFragment)
         }
     }
@@ -82,6 +92,17 @@ class ProfileFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 profileViewModel.profileState.collect { state ->
+                    if (userAuthManager.isGuest()) {
+                        progressBar.visibility = View.GONE
+                        displayNameTv.text = getString(R.string.guest_profile_title)
+                        emailTv.text = getString(R.string.guest_profile_message)
+                        userIdTv.text = "-"
+                        profileImageView.setImageResource(R.drawable.icon_account)
+                        profileEditBtn.isEnabled = false
+                        return@collect
+                    }
+
+                    profileEditBtn.isEnabled = true
                     when (state) {
                         is ProfileState.Idle -> {
                             progressBar.visibility = View.GONE

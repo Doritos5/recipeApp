@@ -18,6 +18,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.example.recipeapp.R
+import com.example.recipeapp.auth.UserAuthManager
 import com.example.recipeapp.ui.viewmodel.ProfileState
 import com.example.recipeapp.ui.viewmodel.ProfileViewModel
 import com.example.recipeapp.util.ImageUtils
@@ -26,6 +27,7 @@ import com.google.android.material.textfield.TextInputEditText
 import com.squareup.picasso.Picasso
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class EditProfileFragment : Fragment() {
@@ -51,6 +53,9 @@ class EditProfileFragment : Fragment() {
     private var currentFirstName: String = ""
     private var currentLastName: String = ""
 
+    @Inject
+    lateinit var userAuthManager: UserAuthManager
+
     private val imagePickerLauncher = registerForActivityResult(
         ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -70,6 +75,12 @@ class EditProfileFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        if (userAuthManager.isGuest()) {
+            Toast.makeText(requireContext(), getString(R.string.guest_profile_edit_blocked), Toast.LENGTH_SHORT).show()
+            findNavController().navigateUp()
+            return null
+        }
+
         val view = inflater.inflate(R.layout.fragment_edit_profile, container, false)
 
         initViews(view)
