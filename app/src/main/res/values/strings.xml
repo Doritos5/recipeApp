@@ -45,4 +45,22 @@
     <string name="guest_profile_edit_blocked">You are not signed up yet. Please log in to edit your profile.</string>
     <string name="guest_add_recipe_blocked">You are not signed up yet. Please log in to add a recipe.</string>
     <string name="guest_blocked_action">This action is available only for signed-in users.</string>
+    <string name="drawer_guest_name">Guest</string>
+    <string name="drawer_guest_subtitle">Join the app</string>
+
+    <!-- Nearby supermarkets -->
+    <string name="nearby_supermarkets_title">Nearby Supermarkets</string>
+    <string name="nearby_loading">Finding supermarkets near you...</string>
+    <string name="nearby_no_results">No supermarkets found nearby.</string>
+    <string name="nearby_permission_denied">Location permission is required to find nearby supermarkets.</string>
+    <string name="nearby_location_disabled">Location services are disabled. Enable location to continue.</string>
+    <string name="nearby_location_error">Could not get current location.</string>
+    <string name="nearby_retry">Retry</string>
+    <string name="nearby_place_no_address">Address not available</string>
+    <string name="nearby_radius_default">Within 3 km</string>
+    <string name="nearby_radius_format">Within %.1f km</string>
+    <string name="nearby_cooldown_hint">Tip: avoid rapid refreshes to reduce Overpass limits.</string>
+
+    <!-- Default empty string -->
+    <string name="empty"></string>
 </resources>

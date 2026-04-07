@@ -28,7 +28,7 @@
             android:id="@+id/drawerUserName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Amanda Hill"
+            android:text="@string/empty"
             android:textColor="#FFFFFF"
             android:textSize="24sp"
             android:textStyle="bold" />
@@ -37,7 +37,7 @@
             android:id="@+id/drawerUserSubtitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="professional chef"
+            android:text="@string/empty"
             android:textColor="#FCEAF1"
             android:textSize="16sp" />
     </LinearLayout>

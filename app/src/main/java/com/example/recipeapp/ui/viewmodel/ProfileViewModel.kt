@@ -47,6 +47,10 @@ class ProfileViewModel @Inject constructor(
     private val _profileState = MutableStateFlow<ProfileState>(ProfileState.Idle)
     val profileState: StateFlow<ProfileState> = _profileState.asStateFlow()
 
+    fun clearProfileState() {
+        _profileState.value = ProfileState.Idle
+    }
+
     fun loadProfile() {
         val firebaseUser = authManager.getCurrentUser()
         if (firebaseUser == null) {

@@ -2,19 +2,27 @@ package com.example.recipeapp
 
 import android.os.Bundle
 import android.widget.ImageView
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavOptions
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
+import com.example.recipeapp.auth.AuthResult
 import com.example.recipeapp.auth.UserAuthManager
 import com.example.recipeapp.ui.viewmodel.AuthViewModel
+import com.example.recipeapp.ui.viewmodel.ProfileState
+import com.example.recipeapp.ui.viewmodel.ProfileViewModel
 import com.google.android.material.navigation.NavigationView
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -22,7 +30,10 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var drawerLayout: DrawerLayout
     private lateinit var navigationView: NavigationView
+    private lateinit var drawerUserName: TextView
+    private lateinit var drawerUserSubtitle: TextView
     private val authViewModel: AuthViewModel by viewModels()
+    private val profileViewModel: ProfileViewModel by viewModels()
 
     @Inject
     lateinit var userAuthManager: UserAuthManager
@@ -38,10 +49,15 @@ class MainActivity : AppCompatActivity() {
 
         val headerView = navigationView.getHeaderView(0)
         val closeBtn = headerView.findViewById<ImageView>(R.id.drawerCloseBtn)
+        drawerUserName = headerView.findViewById(R.id.drawerUserName)
+        drawerUserSubtitle = headerView.findViewById(R.id.drawerUserSubtitle)
 
         closeBtn.setOnClickListener {
             closeDrawer()
         }
+
+        setupDrawerHeader()
+        observeAuthState()
 
         val navHostFragment = supportFragmentManager
             .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
@@ -63,6 +79,8 @@ class MainActivity : AppCompatActivity() {
             when (item.itemId) {
                 R.id.menu_logout -> {
                     authViewModel.logout()
+                    updateDrawerHeaderForGuest()
+                    profileViewModel.clearProfileState()
                     val navOptions = NavOptions.Builder()
                         .setPopUpTo(navController.graph.startDestinationId, true)
                         .build()
@@ -92,11 +110,99 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        if (userAuthManager.isGuest()) {
+            updateDrawerHeaderForGuest()
+            profileViewModel.clearProfileState()
+        } else {
+            profileViewModel.loadProfile()
+        }
+    }
+
+    private fun setupDrawerHeader() {
+        if (userAuthManager.isGuest()) {
+            updateDrawerHeaderForGuest()
+            return
+        }
+
+        updateDrawerHeaderFromAuthFallback()
+        profileViewModel.loadProfile()
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                profileViewModel.profileState.collect { state ->
+                    if (userAuthManager.isGuest()) {
+                        updateDrawerHeaderForGuest()
+                        return@collect
+                    }
+
+                    when (state) {
+                        is ProfileState.Loaded -> {
+                            val subtitle = when {
+                                state.username.isNotBlank() -> state.username
+                                state.email.isNotBlank() -> state.email
+                                else -> ""
+                            }
+                            updateDrawerHeaderForLoggedIn(state.displayName, subtitle)
+                        }
+
+                        else -> {
+                            updateDrawerHeaderFromAuthFallback()
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun observeAuthState() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                authViewModel.authState.collect { result ->
+                    when (result) {
+                        is AuthResult.Success -> {
+                            updateDrawerHeaderFromAuthFallback()
+                            profileViewModel.loadProfile()
+                        }
+                        is AuthResult.Error -> {
+                            // No drawer update needed for auth errors.
+                        }
+                        null -> {
+                            if (userAuthManager.isGuest()) {
+                                updateDrawerHeaderForGuest()
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     private fun isGuestBlockedDestination(destinationId: Int): Boolean {
         if (!userAuthManager.isGuest()) return false
         return destinationId == R.id.profileFragment ||
                 destinationId == R.id.editProfileFragment ||
                 destinationId == R.id.addRecipeFragment
+    }
+
+    private fun updateDrawerHeaderForGuest() {
+        drawerUserName.text = getString(R.string.drawer_guest_name)
+        drawerUserSubtitle.text = getString(R.string.drawer_guest_subtitle)
+    }
+
+    private fun updateDrawerHeaderFromAuthFallback() {
+        val name = userAuthManager.getDisplayName()
+            ?.takeIf { it.isNotBlank() }
+            ?: userAuthManager.getEmail()?.substringBefore("@")
+            ?: ""
+        val subtitle = userAuthManager.getEmail().orEmpty()
+        updateDrawerHeaderForLoggedIn(name, subtitle)
+    }
+
+    private fun updateDrawerHeaderForLoggedIn(displayName: String?, subtitle: String?) {
+        drawerUserName.text = displayName?.takeIf { it.isNotBlank() }.orEmpty()
+        drawerUserSubtitle.text = subtitle?.takeIf { it.isNotBlank() }.orEmpty()
     }
 
     fun openDrawer() {

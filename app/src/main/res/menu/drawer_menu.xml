@@ -22,10 +22,10 @@
             android:icon="@drawable/ic_profile_drawer"
             android:title="Profile" />
 
-<!--        <item-->
-<!--            android:id="@+id/nearbySupermarketFragment"-->
-<!--            android:icon="@drawable/ic_location_drawer"-->
-<!--            android:title="Nearby Supermarket" />-->
+        <item
+            android:id="@+id/nearbySupermarketFragment"
+            android:icon="@drawable/ic_location_drawer"
+            android:title="@string/nearby_supermarkets_title" />
     </group>
 
     <item
