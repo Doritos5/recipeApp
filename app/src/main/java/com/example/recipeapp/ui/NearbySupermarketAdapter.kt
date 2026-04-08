@@ -10,7 +10,8 @@ import com.example.recipeapp.model.places.NearbyPlace
 import java.util.Locale
 
 class NearbySupermarketAdapter(
-    private var places: List<NearbyPlace>
+    private var places: List<NearbyPlace>,
+    private val onPlaceClick: (NearbyPlace) -> Unit
 ) : RecyclerView.Adapter<NearbySupermarketAdapter.PlaceViewHolder>() {
 
     class PlaceViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -29,7 +30,13 @@ class NearbySupermarketAdapter(
         val place = places[position]
         holder.name.text = place.name
         holder.distance.text = formatDistance(place.distanceMeters)
-        holder.address.text = place.address.ifBlank { holder.itemView.context.getString(R.string.nearby_place_no_address) }
+        holder.address.text = place.address.ifBlank {
+            holder.itemView.context.getString(R.string.nearby_place_no_address)
+        }
+
+        holder.itemView.setOnClickListener {
+            onPlaceClick(place)
+        }
     }
 
     override fun getItemCount(): Int = places.size
@@ -48,4 +55,3 @@ class NearbySupermarketAdapter(
         }
     }
 }
-

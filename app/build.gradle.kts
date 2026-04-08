@@ -54,6 +54,7 @@ dependencies {
     implementation("androidx.navigation:navigation-fragment-ktx:2.7.6")
     implementation("androidx.navigation:navigation-ui-ktx:2.7.6")
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
+    implementation("org.osmdroid:osmdroid-android:6.1.20")
 
     val room_version = "2.6.1"
     implementation("androidx.room:room-runtime:$room_version")

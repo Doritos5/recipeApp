@@ -96,6 +96,12 @@ class MainActivity : AppCompatActivity() {
                         return@setNavigationItemSelectedListener true
                     }
 
+                    val currentDestinationId = navController.currentDestination?.id
+                    if (currentDestinationId == item.itemId) {
+                        drawerLayout.closeDrawer(GravityCompat.START)
+                        return@setNavigationItemSelectedListener true
+                    }
+
                     val handled = try {
                         navController.navigate(item.itemId)
                         true
