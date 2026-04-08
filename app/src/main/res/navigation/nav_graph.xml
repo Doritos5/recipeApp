@@ -124,4 +124,10 @@
         tools:layout="@layout/fragment_recipe_detail">
     </fragment>
 
+    <fragment
+        android:id="@+id/nearbySupermarketFragment"
+        android:name="com.example.recipeapp.ui.NearbySupermarketFragment"
+        android:label="Nearby Supermarkets"
+        tools:layout="@layout/fragment_nearby_supermarket" />
+
 </navigation>

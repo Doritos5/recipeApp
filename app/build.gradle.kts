@@ -53,7 +53,7 @@ dependencies {
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     implementation("androidx.navigation:navigation-fragment-ktx:2.7.6")
     implementation("androidx.navigation:navigation-ui-ktx:2.7.6")
-    implementation(libs.play.services.location)
+    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
 
     val room_version = "2.6.1"
     implementation("androidx.room:room-runtime:$room_version")
@@ -63,6 +63,7 @@ dependencies {
     // --- Retrofit & Gson (API) ---
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
 
     // --- Lifecycle & LiveData ---
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
@@ -81,8 +82,8 @@ dependencies {
     implementation("com.google.dagger:hilt-android:2.51.1")
     kapt("com.google.dagger:hilt-android-compiler:2.51.1")
 
-    // --- GPS ---
-    implementation("com.google.android.gms:play-services-location:21.0.1")
 
     implementation("com.google.android.flexbox:flexbox:3.0.0")
+
+    testImplementation("junit:junit:4.13.2")
 }

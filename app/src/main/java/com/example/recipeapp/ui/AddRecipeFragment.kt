@@ -25,9 +25,8 @@ import com.example.recipeapp.model.recipes.Recipe
 import com.example.recipeapp.ui.state.UploadState
 import com.example.recipeapp.ui.util.TagChipUtils
 import com.example.recipeapp.util.ImageUtils
+import com.example.recipeapp.util.LocationHelper
 import com.example.recipeapp.util.TagValidator
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationServices
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
 import dagger.hilt.android.AndroidEntryPoint
@@ -35,6 +34,7 @@ import kotlinx.coroutines.launch
 import java.util.UUID
 import javax.inject.Inject
 import androidx.navigation.fragment.findNavController
+import android.location.LocationListener
 
 @AndroidEntryPoint
 class AddRecipeFragment : Fragment() {
@@ -58,9 +58,9 @@ class AddRecipeFragment : Fragment() {
 
     private var selectedImageUri: Uri? = null
 
-    private lateinit var fusedLocationClient: FusedLocationProviderClient
     private var currentLat: Double? = 0.0
     private var currentLong: Double? = 0.0
+    private var pendingLocationListener: LocationListener? = null
 
     @Inject
     lateinit var userAuthManager: UserAuthManager
@@ -103,13 +103,18 @@ class AddRecipeFragment : Fragment() {
             return null
         }
 
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
         val view = inflater.inflate(R.layout.fragment_add_recipe, container, false)
         initViews(view)
         setupListeners()
         observeUploadState()
         checkPermissionsAndGetLocation()
         return view
+    }
+
+    override fun onStop() {
+        super.onStop()
+        LocationHelper.removeUpdates(requireContext(), pendingLocationListener)
+        pendingLocationListener = null
     }
 
     private fun checkPermissionsAndGetLocation() {
@@ -129,15 +134,26 @@ class AddRecipeFragment : Fragment() {
     }
 
     private fun getLocation() {
-        try {
-            fusedLocationClient.lastLocation.addOnSuccessListener { location ->
-                location?.let {
-                    currentLat = it.latitude
-                    currentLong = it.longitude
-                }
+        val context = requireContext()
+        if (!LocationHelper.isLocationEnabled(context)) {
+            Toast.makeText(context, getString(R.string.nearby_location_disabled), Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val lastLocation = LocationHelper.getBestLastKnownLocation(context)
+        if (lastLocation != null) {
+            currentLat = lastLocation.latitude
+            currentLong = lastLocation.longitude
+            return
+        }
+
+        LocationHelper.removeUpdates(context, pendingLocationListener)
+        pendingLocationListener = LocationHelper.requestSingleUpdate(context) { location ->
+            pendingLocationListener = null
+            if (location != null) {
+                currentLat = location.latitude
+                currentLong = location.longitude
             }
-        } catch (e: SecurityException) {
-            e.printStackTrace()
         }
     }
 
