@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.recipeapp.data.NearbyPlacesRepository
 import com.example.recipeapp.model.places.NearbyPlace
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -29,6 +30,12 @@ class NearbySupermarketViewModel @Inject constructor(
     private val _state = MutableStateFlow<NearbySupermarketState>(NearbySupermarketState.Idle)
     val state: StateFlow<NearbySupermarketState> = _state.asStateFlow()
 
+    private var cachedPlaces: List<NearbyPlace> = emptyList()
+    private var cachedLatitude: Double? = null
+    private var cachedLongitude: Double? = null
+    private var lastLoadedAtMillis: Long? = null
+    private var loadJob: Job? = null
+
     fun markPermissionDenied() {
         _state.value = NearbySupermarketState.PermissionDenied
     }
@@ -38,27 +45,89 @@ class NearbySupermarketViewModel @Inject constructor(
     }
 
     fun setError(message: String) {
-        _state.value = NearbySupermarketState.Error(message)
+        if (cachedPlaces.isNotEmpty()) {
+            _state.value = NearbySupermarketState.Loaded(cachedPlaces)
+        } else {
+            _state.value = NearbySupermarketState.Error(message)
+        }
     }
 
     fun markLoading() {
-        _state.value = NearbySupermarketState.Loading
+        if (cachedPlaces.isEmpty()) {
+            _state.value = NearbySupermarketState.Loading
+        }
     }
 
-    fun loadNearbySupermarkets(latitude: Double, longitude: Double, radiusMeters: Int) {
-        viewModelScope.launch {
-            _state.value = NearbySupermarketState.Loading
+    fun getCachedPlaces(): List<NearbyPlace> = cachedPlaces
+
+    fun getCachedLatitude(): Double? = cachedLatitude
+
+    fun getCachedLongitude(): Double? = cachedLongitude
+
+    fun hasFreshCache(
+        latitude: Double,
+        longitude: Double,
+        maxAgeMillis: Long = 5 * 60 * 1000L
+    ): Boolean {
+        val loadedAt = lastLoadedAtMillis ?: return false
+        val lat = cachedLatitude ?: return false
+        val lng = cachedLongitude ?: return false
+
+        val ageOk = System.currentTimeMillis() - loadedAt <= maxAgeMillis
+        val locationCloseEnough =
+            kotlin.math.abs(lat - latitude) < 0.002 &&
+                    kotlin.math.abs(lng - longitude) < 0.002
+
+        return ageOk && locationCloseEnough && cachedPlaces.isNotEmpty()
+    }
+
+    fun emitCachedIfAvailable(): Boolean {
+        return if (cachedPlaces.isNotEmpty()) {
+            _state.value = NearbySupermarketState.Loaded(cachedPlaces)
+            true
+        } else {
+            false
+        }
+    }
+
+    fun loadNearbySupermarkets(
+        latitude: Double,
+        longitude: Double,
+        radiusMeters: Int,
+        forceRefresh: Boolean = false
+    ) {
+        if (!forceRefresh && hasFreshCache(latitude, longitude)) {
+            _state.value = NearbySupermarketState.Loaded(cachedPlaces)
+            return
+        }
+
+        loadJob?.cancel()
+        loadJob = viewModelScope.launch {
+            if (cachedPlaces.isEmpty()) {
+                _state.value = NearbySupermarketState.Loading
+            }
+
             try {
                 val places = repository.fetchNearbySupermarkets(latitude, longitude, radiusMeters)
+
+                cachedLatitude = latitude
+                cachedLongitude = longitude
+                lastLoadedAtMillis = System.currentTimeMillis()
+                cachedPlaces = places
+
                 _state.value = if (places.isEmpty()) {
                     NearbySupermarketState.NoResults
                 } else {
                     NearbySupermarketState.Loaded(places)
                 }
             } catch (e: Exception) {
-                _state.value = NearbySupermarketState.Error(
-                    e.message ?: "Failed to fetch nearby supermarkets"
-                )
+                if (cachedPlaces.isNotEmpty()) {
+                    _state.value = NearbySupermarketState.Loaded(cachedPlaces)
+                } else {
+                    _state.value = NearbySupermarketState.Error(
+                        e.message ?: "Failed to fetch nearby supermarkets"
+                    )
+                }
             }
         }
     }

@@ -130,4 +130,10 @@
         android:label="Nearby Supermarkets"
         tools:layout="@layout/fragment_nearby_supermarket" />
 
+    <fragment
+        android:id="@+id/nearbySupermarketDetailFragment"
+        android:name="com.example.recipeapp.ui.NearbySupermarketDetailFragment"
+        android:label="Nearby Supermarket Detail"
+        tools:layout="@layout/fragment_nearby_supermarket_detail" />
+
 </navigation>

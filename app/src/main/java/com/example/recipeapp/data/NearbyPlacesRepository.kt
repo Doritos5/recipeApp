@@ -5,8 +5,10 @@ import android.util.Log
 import com.example.recipeapp.model.places.NearbyPlace
 import com.example.recipeapp.model.places.OverpassElement
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import retrofit2.HttpException
 import java.io.IOException
 import javax.inject.Inject
@@ -27,33 +29,60 @@ class NearbyPlacesRepository @Inject constructor(
                 longitude = longitude,
                 radiusMeters = radiusMeters
             )
+
             Log.d(TAG, "Fetching supermarkets near $latitude,$longitude radius=$radiusMeters")
 
             val endpoints = listOf(
-                "https://overpass-api.de/api/interpreter",
                 "https://overpass.kumi.systems/api/interpreter",
-                "https://overpass.nchc.org.tw/api/interpreter"
+                "https://overpass-api.de/api/interpreter"
             )
 
             var lastError: Exception? = null
-            for (endpoint in endpoints) {
-                try {
-                    val response = overpassApi.search(endpoint, query)
-                    return@withContext response.elements
-                        .mapNotNull { element ->
-                            element.toNearbyPlace(latitude, longitude)
+
+            repeat(2) { attempt ->
+                Log.d(TAG, "Nearby supermarkets fetch attempt #${attempt + 1}")
+
+                for (endpoint in endpoints) {
+                    try {
+                        Log.d(TAG, "Trying Overpass endpoint: $endpoint")
+
+                        val response = withTimeout(10_000L) {
+                            overpassApi.search(endpoint, query)
                         }
-                        .sortedBy { it.distanceMeters }
-                } catch (e: HttpException) {
-                    lastError = e
-                    if (e.code() != 504) throw e
-                } catch (e: IOException) {
-                    lastError = e
+
+                        val places = response.elements
+                            .mapNotNull { element ->
+                                element.toNearbyPlace(latitude, longitude)
+                            }
+                            .sortedBy { it.distanceMeters }
+
+                        Log.d(TAG, "Loaded ${places.size} nearby supermarkets from $endpoint")
+                        return@withContext places
+                    } catch (e: TimeoutCancellationException) {
+                        lastError = e
+                        Log.e(TAG, "Timeout from $endpoint", e)
+                    } catch (e: HttpException) {
+                        lastError = e
+                        Log.e(TAG, "HTTP error from $endpoint: ${e.code()} ${e.message()}", e)
+                    } catch (e: IOException) {
+                        lastError = e
+                        Log.e(TAG, "Network error from $endpoint: ${e.message}", e)
+                    } catch (e: Exception) {
+                        lastError = e
+                        Log.e(TAG, "Unexpected error from $endpoint: ${e.message}", e)
+                    }
+
+                    delay(500)
                 }
-                delay(400)
+
+                if (attempt == 0) {
+                    delay(900)
+                }
             }
 
-            throw lastError ?: IllegalStateException("Failed to fetch nearby supermarkets")
+            throw IllegalStateException(
+                "Couldn't load nearby supermarkets right now. Please try again."
+            )
         }
     }
 
