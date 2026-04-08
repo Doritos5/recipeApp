@@ -116,6 +116,7 @@ class MainActivity : AppCompatActivity() {
             updateDrawerHeaderForGuest()
             profileViewModel.clearProfileState()
         } else {
+            updateDrawerHeaderFromAuthFallback()
             profileViewModel.loadProfile()
         }
     }
@@ -123,11 +124,10 @@ class MainActivity : AppCompatActivity() {
     private fun setupDrawerHeader() {
         if (userAuthManager.isGuest()) {
             updateDrawerHeaderForGuest()
-            return
+        } else {
+            updateDrawerHeaderFromAuthFallback()
+            profileViewModel.loadProfile()
         }
-
-        updateDrawerHeaderFromAuthFallback()
-        profileViewModel.loadProfile()
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -171,6 +171,9 @@ class MainActivity : AppCompatActivity() {
                         null -> {
                             if (userAuthManager.isGuest()) {
                                 updateDrawerHeaderForGuest()
+                            } else {
+                                updateDrawerHeaderFromAuthFallback()
+                                profileViewModel.loadProfile()
                             }
                         }
                     }

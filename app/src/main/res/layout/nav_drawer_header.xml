@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="170dp"
+    android:layout_height="@dimen/drawer_header_height"
     android:orientation="horizontal"
     android:gravity="center_vertical"
-    android:paddingStart="20dp"
-    android:paddingEnd="20dp"
+    android:paddingStart="@dimen/drawer_header_padding_horizontal"
+    android:paddingEnd="@dimen/drawer_header_padding_horizontal"
     android:background="@drawable/bg_home_header_gradient">
 
     <ImageView
         android:id="@+id/drawerProfileImage"
-        android:layout_width="52dp"
-        android:layout_height="52dp"
-        android:layout_marginEnd="14dp"
+        android:layout_width="@dimen/drawer_profile_size"
+        android:layout_height="@dimen/drawer_profile_size"
+        android:layout_marginEnd="@dimen/drawer_profile_margin_end"
         android:scaleType="centerCrop"
         android:src="@drawable/ic_launcher_foreground"
         android:background="@drawable/bg_circle_placeholder"
@@ -30,7 +30,7 @@
             android:layout_height="wrap_content"
             android:text="@string/empty"
             android:textColor="#FFFFFF"
-            android:textSize="24sp"
+            android:textSize="@dimen/drawer_name_text_size"
             android:textStyle="bold" />
 
         <TextView
@@ -39,13 +39,13 @@
             android:layout_height="wrap_content"
             android:text="@string/empty"
             android:textColor="#FCEAF1"
-            android:textSize="16sp" />
+            android:textSize="@dimen/drawer_subtitle_text_size" />
     </LinearLayout>
 
     <ImageView
         android:id="@+id/drawerCloseBtn"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
+        android:layout_width="@dimen/drawer_close_size"
+        android:layout_height="@dimen/drawer_close_size"
         android:src="@android:drawable/ic_menu_close_clear_cancel"
         android:tint="#FFFFFF"
         android:contentDescription="@null" />

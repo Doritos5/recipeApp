@@ -4,10 +4,10 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:paddingStart="24dp"
-    android:paddingTop="28dp"
-    android:paddingEnd="24dp"
-    android:paddingBottom="24dp"
+    android:paddingStart="@dimen/dialog_padding_horizontal"
+    android:paddingTop="@dimen/dialog_padding_top"
+    android:paddingEnd="@dimen/dialog_padding_horizontal"
+    android:paddingBottom="@dimen/dialog_padding_bottom"
     android:background="@drawable/bg_delete_dialog">
 
     <TextView
@@ -17,73 +17,75 @@
         android:text="Are you sure?"
         android:textAlignment="center"
         android:textColor="#111111"
-        android:textSize="30sp"
+        android:textSize="@dimen/dialog_title_text_size"
         android:textStyle="bold" />
 
     <TextView
         android:id="@+id/deleteDialogMessage"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="28dp"
+        android:layout_marginTop="@dimen/dialog_message_margin_top"
         android:text="Are you sure you want to delete this recipe?"
         android:textAlignment="center"
         android:textColor="#5E5E5E"
-        android:textSize="22sp"
+        android:textSize="@dimen/dialog_message_text_size"
         android:textStyle="bold" />
 
     <TextView
         android:id="@+id/deleteDialogSubMessage"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="18dp"
+        android:layout_marginTop="@dimen/dialog_submessage_margin_top"
         android:text="Once deleted, it can’t be recovered!"
         android:textAlignment="center"
         android:textColor="#6F6F6F"
-        android:textSize="16sp" />
+        android:textSize="@dimen/dialog_submessage_text_size" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="34dp"
+        android:layout_marginTop="@dimen/dialog_actions_margin_top"
         android:orientation="horizontal"
         android:gravity="center">
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/deleteDialogCancelBtn"
             android:layout_width="0dp"
-            android:layout_height="52dp"
+            android:layout_height="wrap_content"
+            android:minHeight="@dimen/dialog_button_height"
             android:layout_weight="1"
-            android:layout_marginEnd="10dp"
+            android:layout_marginEnd="@dimen/dialog_button_spacing"
             android:text="Cancel"
             android:textAllCaps="false"
             android:textColor="#4A4A4A"
-            android:textSize="18sp"
+            android:textSize="@dimen/dialog_button_text_size"
             android:textStyle="bold"
             app:backgroundTint="#F1F1F1"
-            app:cornerRadius="26dp"
+            app:cornerRadius="@dimen/dialog_button_radius"
             app:strokeWidth="0dp"
             app:icon="@android:drawable/ic_menu_close_clear_cancel"
             app:iconGravity="textStart"
-            app:iconPadding="8dp"
+            app:iconPadding="@dimen/dialog_button_icon_padding"
             app:iconTint="#4A4A4A" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/deleteDialogDeleteBtn"
             android:layout_width="0dp"
-            android:layout_height="52dp"
+            android:layout_height="wrap_content"
+            android:minHeight="@dimen/dialog_button_height"
             android:layout_weight="1"
-            android:layout_marginStart="10dp"
+            android:layout_marginStart="@dimen/dialog_button_spacing"
             android:text="Delete"
             android:textAllCaps="false"
             android:textColor="#FF4B4B"
-            android:textSize="18sp"
+            android:textSize="@dimen/dialog_button_text_size"
             android:textStyle="bold"
             app:backgroundTint="#FFDCDC"
-            app:cornerRadius="26dp"
+            app:cornerRadius="@dimen/dialog_button_radius"
             app:strokeWidth="0dp"
             app:icon="@drawable/ic_garbage_delete_button"
             app:iconGravity="textStart"
-            app:iconPadding="8dp"
+            app:iconPadding="@dimen/dialog_button_icon_padding"
             app:iconTint="#FF4B4B" />
 
     </LinearLayout>

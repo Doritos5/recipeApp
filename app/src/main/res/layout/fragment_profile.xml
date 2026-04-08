@@ -9,7 +9,7 @@
     <View
         android:id="@+id/headerBackground"
         android:layout_width="0dp"
-        android:layout_height="120dp"
+        android:layout_height="@dimen/header_height"
         android:background="@drawable/bg_home_header_gradient"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -17,10 +17,10 @@
 
     <ImageView
         android:id="@+id/backBtn"
-        android:layout_width="28dp"
-        android:layout_height="28dp"
-        android:layout_marginStart="20dp"
-        android:layout_marginTop="60dp"
+        android:layout_width="@dimen/header_icon_size"
+        android:layout_height="@dimen/header_icon_size"
+        android:layout_marginStart="@dimen/header_icon_margin_start"
+        android:layout_marginTop="@dimen/header_icon_margin_top"
         android:src="@drawable/ic_arrow_back"
         android:contentDescription="@null"
         app:tint="#FFFFFF"
@@ -31,10 +31,10 @@
         android:id="@+id/pageTitleTv"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
+        android:layout_marginStart="@dimen/header_title_margin_start"
         android:text="My Profile"
         android:textColor="#FFFFFF"
-        android:textSize="24sp"
+        android:textSize="@dimen/header_title_text_size_medium"
         android:textStyle="bold"
         app:layout_constraintStart_toEndOf="@id/backBtn"
         app:layout_constraintTop_toTopOf="@id/backBtn"
@@ -43,18 +43,20 @@
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/profileEditBtn"
-        android:layout_width="84dp"
-        android:layout_height="42dp"
-        android:layout_marginEnd="16dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:minHeight="@dimen/profile_action_button_height"
+        android:minWidth="@dimen/profile_action_button_min_width"
+        android:layout_marginEnd="@dimen/profile_action_margin_end"
         android:text="edit"
         android:textAllCaps="false"
         android:textColor="#FFFFFF"
-        android:textSize="16sp"
         android:textStyle="bold"
+        android:textSize="@dimen/action_button_text_size"
         android:background="@drawable/bg_small_save_button"
         android:padding="0dp"
         app:backgroundTint="@null"
-        app:cornerRadius="21dp"
+        app:cornerRadius="@dimen/profile_action_button_radius"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@id/backBtn"
         app:layout_constraintBottom_toBottomOf="@id/backBtn" />
@@ -74,60 +76,60 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:gravity="center_horizontal"
-            android:paddingStart="24dp"
-            android:paddingTop="48dp"
-            android:paddingEnd="24dp"
-            android:paddingBottom="32dp">
+            android:paddingStart="@dimen/form_padding_horizontal"
+            android:paddingTop="@dimen/profile_content_padding_top"
+            android:paddingEnd="@dimen/form_padding_horizontal"
+            android:paddingBottom="@dimen/form_padding_bottom">
 
             <com.google.android.material.imageview.ShapeableImageView
                 android:id="@+id/profileImageView"
-                android:layout_width="104dp"
-                android:layout_height="104dp"
+                android:layout_width="@dimen/profile_image_size"
+                android:layout_height="@dimen/profile_image_size"
                 android:scaleType="centerCrop"
                 android:src="@drawable/icon_account"
                 android:contentDescription="@string/profile_image"
-                android:padding="3dp"
+                android:padding="@dimen/profile_image_padding"
                 app:shapeAppearanceOverlay="@style/ProfileImageCircleShape"
                 app:strokeColor="#F3328F"
-                app:strokeWidth="3dp" />
+                app:strokeWidth="@dimen/profile_image_stroke_width" />
 
             <TextView
                 android:id="@+id/profileDisplayNameTv"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
+                android:layout_marginTop="@dimen/profile_name_margin_top"
                 android:text="Amanda Hill"
                 android:textColor="#666666"
-                android:textSize="20sp"
+                android:textSize="@dimen/profile_name_text_size"
                 android:textStyle="normal" />
 
             <LinearLayout
                 android:id="@+id/emailCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="48dp"
+                android:layout_marginTop="@dimen/profile_card_margin_top_large"
                 android:background="@drawable/bg_profile_info_card"
                 android:orientation="vertical"
-                android:paddingStart="20dp"
-                android:paddingTop="18dp"
-                android:paddingEnd="20dp"
-                android:paddingBottom="18dp">
+                android:paddingStart="@dimen/profile_card_padding_horizontal"
+                android:paddingTop="@dimen/profile_card_padding_vertical"
+                android:paddingEnd="@dimen/profile_card_padding_horizontal"
+                android:paddingBottom="@dimen/profile_card_padding_vertical">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Email"
                     android:textColor="#8C8C8C"
-                    android:textSize="16sp" />
+                    android:textSize="@dimen/label_text_size" />
 
                 <TextView
                     android:id="@+id/profileEmailTv"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
+                    android:layout_marginTop="@dimen/profile_card_value_margin_top"
                     android:text="amenda111@gmail.com"
                     android:textColor="#111111"
-                    android:textSize="18sp"
+                    android:textSize="@dimen/profile_card_value_text_size"
                     android:textStyle="normal" />
             </LinearLayout>
 
@@ -135,41 +137,42 @@
                 android:id="@+id/userIdCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="28dp"
+                android:layout_marginTop="@dimen/profile_card_margin_top"
                 android:background="@drawable/bg_profile_info_card"
                 android:orientation="vertical"
-                android:paddingStart="20dp"
-                android:paddingTop="18dp"
-                android:paddingEnd="20dp"
-                android:paddingBottom="18dp">
+                android:paddingStart="@dimen/profile_card_padding_horizontal"
+                android:paddingTop="@dimen/profile_card_padding_vertical"
+                android:paddingEnd="@dimen/profile_card_padding_horizontal"
+                android:paddingBottom="@dimen/profile_card_padding_vertical">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="User ID"
                     android:textColor="#8C8C8C"
-                    android:textSize="16sp" />
+                    android:textSize="@dimen/label_text_size" />
 
                 <TextView
                     android:id="@+id/profileUserIdTv"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
+                    android:layout_marginTop="@dimen/profile_card_value_margin_top"
                     android:text="159187"
                     android:textColor="#111111"
-                    android:textSize="18sp"
+                    android:textSize="@dimen/profile_card_value_text_size"
                     android:textStyle="normal" />
             </LinearLayout>
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/profilePickImageBtn"
                 android:layout_width="wrap_content"
-                android:layout_height="48dp"
-                android:layout_marginTop="28dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/section_margin_top"
+                android:minHeight="@dimen/field_min_height"
                 android:text="Change photo"
                 android:textAllCaps="false"
                 android:textColor="#FFFFFF"
-                android:textSize="16sp"
+                android:textSize="@dimen/action_button_text_size"
                 android:visibility="gone"
                 android:background="@drawable/bg_login_button"
                 app:backgroundTint="@null"
@@ -178,13 +181,14 @@
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/profileDisplayNameEt"
                 android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:layout_marginTop="16dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/profile_edit_field_margin_top"
                 android:background="@drawable/bg_recipe_input"
+                android:minHeight="@dimen/field_min_height"
                 android:hint="Display name"
                 android:inputType="textPersonName"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
+                android:paddingHorizontal="@dimen/field_padding_horizontal"
+                android:paddingVertical="@dimen/field_padding_vertical"
                 android:textColor="#000000"
                 android:textColorHint="#8D8D8D"
                 android:visibility="gone" />
@@ -193,19 +197,20 @@
                 android:id="@+id/profileProgressBar"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
+                android:layout_marginTop="@dimen/progress_margin_top"
                 android:visibility="gone" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/profileUpdateBtn"
                 android:layout_width="match_parent"
-                android:layout_height="52dp"
-                android:layout_marginTop="18dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/profile_update_margin_top"
+                android:minHeight="@dimen/profile_update_button_height"
                 android:text="Save Changes"
                 android:textAllCaps="false"
                 android:textColor="#FFFFFF"
-                android:textSize="16sp"
                 android:textStyle="bold"
+                android:textSize="@dimen/action_button_text_size"
                 android:visibility="gone"
                 android:background="@drawable/bg_login_button"
                 app:backgroundTint="@null"

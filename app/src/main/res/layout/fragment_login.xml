@@ -14,7 +14,7 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHeight_percent="0.38" />
+        app:layout_constraintHeight_percent="0.45" />
 
     <ImageView
         android:id="@+id/logoCircle"
