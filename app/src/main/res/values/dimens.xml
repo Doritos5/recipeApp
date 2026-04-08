@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="header_height">120dp</dimen>
+    <dimen name="header_icon_size">28dp</dimen>
+    <dimen name="header_icon_margin_start">20dp</dimen>
+    <dimen name="header_icon_margin_top">60dp</dimen>
+    <dimen name="header_title_margin_start">16dp</dimen>
+    <dimen name="header_title_text_size">26sp</dimen>
+    <dimen name="header_action_margin_end">18dp</dimen>
+
+    <dimen name="form_padding_horizontal">24dp</dimen>
+    <dimen name="form_padding_top">28dp</dimen>
+    <dimen name="form_padding_bottom">32dp</dimen>
+
+    <dimen name="label_text_size">16sp</dimen>
+    <dimen name="action_button_text_size">16sp</dimen>
+    <dimen name="action_button_height">48dp</dimen>
+    <dimen name="action_button_radius">12dp</dimen>
+
+    <dimen name="field_min_height">56dp</dimen>
+    <dimen name="field_multiline_min_height">130dp</dimen>
+    <dimen name="field_margin_top">12dp</dimen>
+    <dimen name="field_padding_horizontal">16dp</dimen>
+    <dimen name="field_padding_vertical">14dp</dimen>
+
+    <dimen name="image_min_height">200dp</dimen>
+
+    <dimen name="section_margin_top">28dp</dimen>
+
+    <dimen name="chip_spacing_horizontal">10dp</dimen>
+    <dimen name="chip_spacing_vertical">10dp</dimen>
+
+    <dimen name="tag_button_min_width">96dp</dimen>
+
+    <dimen name="progress_margin_top">24dp</dimen>
+    <dimen name="cancel_margin_top">20dp</dimen>
+
+    <dimen name="header_title_text_size_medium">24sp</dimen>
+    <dimen name="header_title_text_size_large">28sp</dimen>
+    <dimen name="header_height_tall">180dp</dimen>
+    <dimen name="header_icon_margin_top_small">50dp</dimen>
+
+    <dimen name="form_padding_top_compact">20dp</dimen>
+
+    <dimen name="action_button_padding_horizontal">20dp</dimen>
+    <dimen name="action_button_radius_large">20dp</dimen>
+
+    <dimen name="image_margin_bottom_small">4dp</dimen>
+
+    <dimen name="field_spacing_horizontal">12dp</dimen>
+    <dimen name="tag_button_min_width_small">76dp</dimen>
+    <dimen name="chip_group_margin_top">14dp</dimen>
+
+    <dimen name="login_logo_size">92dp</dimen>
+    <dimen name="login_logo_margin_start">28dp</dimen>
+    <dimen name="login_logo_margin_top">100dp</dimen>
+    <dimen name="login_logo_padding">20dp</dimen>
+    <dimen name="login_title_margin_start">28dp</dimen>
+    <dimen name="login_title_margin_top">20dp</dimen>
+    <dimen name="login_title_text_size">30sp</dimen>
+    <dimen name="login_subtitle_margin_top">8dp</dimen>
+    <dimen name="login_subtitle_text_size">16sp</dimen>
+    <dimen name="login_sheet_overlap">-28dp</dimen>
+    <dimen name="login_form_padding_horizontal">24dp</dimen>
+    <dimen name="login_form_padding_vertical">24dp</dimen>
+    <dimen name="login_welcome_text_size">26sp</dimen>
+    <dimen name="login_helper_margin_top">12dp</dimen>
+    <dimen name="login_section_margin_top">46dp</dimen>
+    <dimen name="login_field_start_padding">52dp</dimen>
+    <dimen name="login_field_end_padding">52dp</dimen>
+    <dimen name="login_field_label_margin_top">24dp</dimen>
+    <dimen name="login_primary_button_margin_top">70dp</dimen>
+    <dimen name="login_primary_button_text_size">18sp</dimen>
+    <dimen name="login_link_margin_top">8dp</dimen>
+
+    <dimen name="list_header_height">180dp</dimen>
+    <dimen name="list_menu_icon_size">28dp</dimen>
+    <dimen name="list_menu_margin_start">24dp</dimen>
+    <dimen name="list_menu_margin_top">60dp</dimen>
+    <dimen name="list_logo_margin_start">44dp</dimen>
+    <dimen name="list_header_title_margin_start">14dp</dimen>
+    <dimen name="list_header_title_text_size">28sp</dimen>
+    <dimen name="list_search_icon_size">30dp</dimen>
+    <dimen name="list_search_margin_start">24dp</dimen>
+    <dimen name="list_search_margin_top">34dp</dimen>
+    <dimen name="list_search_input_height">56dp</dimen>
+    <dimen name="list_search_input_margin_start">16dp</dimen>
+    <dimen name="list_search_input_margin_end">24dp</dimen>
+    <dimen name="list_search_padding_horizontal">18dp</dimen>
+    <dimen name="list_search_text_size">16sp</dimen>
+    <dimen name="list_content_padding_horizontal">16dp</dimen>
+    <dimen name="list_content_padding_top">18dp</dimen>
+    <dimen name="list_content_padding_bottom">100dp</dimen>
+    <dimen name="list_fab_margin">20dp</dimen>
+
+    <dimen name="my_recipes_count_height">46dp</dimen>
+    <dimen name="my_recipes_count_min_width">108dp</dimen>
+    <dimen name="my_recipes_count_padding_horizontal">18dp</dimen>
+    <dimen name="my_recipes_empty_margin_horizontal">32dp</dimen>
+    <dimen name="my_recipes_list_padding_top">24dp</dimen>
+    <dimen name="my_recipes_fab_margin">24dp</dimen>
+
+    <dimen name="profile_action_button_height">42dp</dimen>
+    <dimen name="profile_action_button_min_width">84dp</dimen>
+    <dimen name="profile_action_margin_end">16dp</dimen>
+    <dimen name="profile_action_button_radius">21dp</dimen>
+    <dimen name="profile_content_padding_top">48dp</dimen>
+    <dimen name="profile_image_size">104dp</dimen>
+    <dimen name="profile_image_padding">3dp</dimen>
+    <dimen name="profile_image_stroke_width">3dp</dimen>
+    <dimen name="profile_name_margin_top">14dp</dimen>
+    <dimen name="profile_name_text_size">20sp</dimen>
+    <dimen name="profile_card_margin_top_large">48dp</dimen>
+    <dimen name="profile_card_margin_top">28dp</dimen>
+    <dimen name="profile_card_padding_horizontal">20dp</dimen>
+    <dimen name="profile_card_padding_vertical">18dp</dimen>
+    <dimen name="profile_card_value_margin_top">10dp</dimen>
+    <dimen name="profile_card_value_text_size">18sp</dimen>
+    <dimen name="profile_edit_field_margin_top">16dp</dimen>
+    <dimen name="profile_update_button_height">52dp</dimen>
+    <dimen name="profile_update_margin_top">18dp</dimen>
+
+    <dimen name="profile_form_padding_top">28dp</dimen>
+    <dimen name="profile_card_padding">16dp</dimen>
+    <dimen name="profile_input_height">52dp</dimen>
+    <dimen name="profile_input_margin_top">10dp</dimen>
+    <dimen name="profile_field_label_margin_top">16dp</dimen>
+    <dimen name="profile_section_margin_top">18dp</dimen>
+    <dimen name="profile_upload_photo_height">200dp</dimen>
+    <dimen name="profile_camera_icon_size">28dp</dimen>
+    <dimen name="profile_input_padding_horizontal">14dp</dimen>
+
+    <dimen name="detail_header_height">120dp</dimen>
+    <dimen name="detail_back_margin_top">50dp</dimen>
+    <dimen name="detail_title_text_size">26sp</dimen>
+    <dimen name="detail_title_margin_end">20dp</dimen>
+    <dimen name="detail_author_margin_start">24dp</dimen>
+    <dimen name="detail_author_margin_top">28dp</dimen>
+    <dimen name="detail_author_text_size">18sp</dimen>
+    <dimen name="detail_date_margin_top">6dp</dimen>
+    <dimen name="detail_date_text_size">14sp</dimen>
+    <dimen name="detail_image_height">300dp</dimen>
+    <dimen name="detail_image_margin">16dp</dimen>
+    <dimen name="detail_tags_margin_top">20dp</dimen>
+    <dimen name="detail_section_title_text_size">28sp</dimen>
+    <dimen name="detail_section_margin_top">28dp</dimen>
+    <dimen name="detail_section_content_margin_top">14dp</dimen>
+    <dimen name="detail_section_padding">20dp</dimen>
+    <dimen name="detail_content_text_size">16sp</dimen>
+    <dimen name="detail_bottom_margin">24dp</dimen>
+
+    <dimen name="card_margin_bottom">18dp</dimen>
+    <dimen name="card_radius">22dp</dimen>
+    <dimen name="card_elevation">4dp</dimen>
+    <dimen name="row_padding_horizontal">16dp</dimen>
+    <dimen name="row_padding_top">16dp</dimen>
+    <dimen name="row_padding_bottom">12dp</dimen>
+    <dimen name="row_avatar_size">46dp</dimen>
+    <dimen name="row_author_text_size">15sp</dimen>
+    <dimen name="row_date_text_size">13sp</dimen>
+    <dimen name="row_date_margin_top">2dp</dimen>
+    <dimen name="row_image_height">260dp</dimen>
+    <dimen name="row_reaction_icon_size">22dp</dimen>
+    <dimen name="row_reaction_spacing">28dp</dimen>
+    <dimen name="row_reaction_text_margin_start">8dp</dimen>
+    <dimen name="row_title_text_size">18sp</dimen>
+    <dimen name="row_body_text_size">14sp</dimen>
+    <dimen name="row_title_padding_top">10dp</dimen>
+    <dimen name="row_body_padding_top">8dp</dimen>
+    <dimen name="row_body_padding_bottom">16dp</dimen>
+    <dimen name="row_reaction_padding_top">14dp</dimen>
+
+    <dimen name="my_card_margin_bottom">18dp</dimen>
+    <dimen name="my_card_radius">22dp</dimen>
+    <dimen name="my_card_elevation">5dp</dimen>
+    <dimen name="my_card_padding">16dp</dimen>
+    <dimen name="my_image_size">150dp</dimen>
+    <dimen name="my_title_text_size">22sp</dimen>
+    <dimen name="my_tags_margin_top">16dp</dimen>
+    <dimen name="my_tag_padding_horizontal">16dp</dimen>
+    <dimen name="my_tag_padding_vertical">8dp</dimen>
+    <dimen name="my_tag_text_size">14sp</dimen>
+    <dimen name="my_tag_more_margin_start">10dp</dimen>
+    <dimen name="my_stats_margin_top">22dp</dimen>
+    <dimen name="my_stats_spacing">28dp</dimen>
+    <dimen name="my_action_row_margin_top">22dp</dimen>
+    <dimen name="my_action_button_height">52dp</dimen>
+    <dimen name="my_action_button_text_size">16sp</dimen>
+    <dimen name="my_action_icon_padding">8dp</dimen>
+    <dimen name="my_action_button_spacing">10dp</dimen>
+
+    <dimen name="signup_first_section_margin_top">28dp</dimen>
+    <dimen name="signup_padding">24dp</dimen>
+    <dimen name="signup_title_margin_top">20dp</dimen>
+    <dimen name="signup_title_text_size">30sp</dimen>
+    <dimen name="signup_subtitle_margin_top">8dp</dimen>
+    <dimen name="signup_subtitle_text_size">16sp</dimen>
+    <dimen name="signup_section_margin_top">20dp</dimen>
+    <dimen name="signup_button_height">56dp</dimen>
+    <dimen name="signup_button_margin_top">28dp</dimen>
+    <dimen name="signup_button_margin_bottom">24dp</dimen>
+    <dimen name="signup_button_text_size">18sp</dimen>
+
+    <dimen name="signup_card_radius">20dp</dimen>
+    <dimen name="signup_card_padding">16dp</dimen>
+    <dimen name="signup_label_text_size">16sp</dimen>
+    <dimen name="signup_field_height">48dp</dimen>
+    <dimen name="signup_field_margin_top">12dp</dimen>
+    <dimen name="signup_helper_text_size">12sp</dimen>
+    <dimen name="signup_helper_margin_top">6dp</dimen>
+    <dimen name="signup_helper_line_spacing">2dp</dimen>
+    <dimen name="signup_input_padding_horizontal">16dp</dimen>
+
+    <dimen name="dialog_padding_horizontal">24dp</dimen>
+    <dimen name="dialog_padding_top">28dp</dimen>
+    <dimen name="dialog_padding_bottom">24dp</dimen>
+    <dimen name="dialog_title_text_size">30sp</dimen>
+    <dimen name="dialog_message_margin_top">28dp</dimen>
+    <dimen name="dialog_message_text_size">22sp</dimen>
+    <dimen name="dialog_submessage_margin_top">18dp</dimen>
+    <dimen name="dialog_submessage_text_size">16sp</dimen>
+    <dimen name="dialog_actions_margin_top">34dp</dimen>
+    <dimen name="dialog_button_height">52dp</dimen>
+    <dimen name="dialog_button_text_size">18sp</dimen>
+    <dimen name="dialog_button_radius">26dp</dimen>
+    <dimen name="dialog_button_icon_padding">8dp</dimen>
+    <dimen name="dialog_button_spacing">10dp</dimen>
+
+    <dimen name="splash_circle_size">180dp</dimen>
+    <dimen name="splash_icon_size">92dp</dimen>
+
+    <dimen name="drawer_width">300dp</dimen>
+    <dimen name="drawer_header_height">170dp</dimen>
+    <dimen name="drawer_header_padding_horizontal">20dp</dimen>
+    <dimen name="drawer_profile_size">52dp</dimen>
+    <dimen name="drawer_profile_margin_end">14dp</dimen>
+    <dimen name="drawer_name_text_size">24sp</dimen>
+    <dimen name="drawer_subtitle_text_size">16sp</dimen>
+    <dimen name="drawer_close_size">24dp</dimen>
+</resources>

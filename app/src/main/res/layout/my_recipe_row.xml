@@ -5,16 +5,16 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="18dp"
-    app:cardCornerRadius="22dp"
-    app:cardElevation="5dp"
+    android:layout_marginBottom="@dimen/my_card_margin_bottom"
+    app:cardCornerRadius="@dimen/my_card_radius"
+    app:cardElevation="@dimen/my_card_elevation"
     app:cardBackgroundColor="#FFFFFF">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:padding="@dimen/my_card_padding">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -23,8 +23,8 @@
 
             <ImageView
                 android:id="@+id/myRecipeImage"
-                android:layout_width="150dp"
-                android:layout_height="150dp"
+                android:layout_width="@dimen/my_image_size"
+                android:layout_height="@dimen/my_image_size"
                 android:scaleType="centerCrop"
                 android:background="#EEEEEE"
                 tools:src="@tools:sample/backgrounds/scenic" />
@@ -33,7 +33,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:layout_marginStart="16dp"
+                android:layout_marginStart="@dimen/field_spacing_horizontal"
                 android:orientation="vertical">
 
                 <TextView
@@ -42,7 +42,7 @@
                     android:layout_height="wrap_content"
                     android:text="Classic Pizza Margarita"
                     android:textColor="#111111"
-                    android:textSize="22sp"
+                    android:textSize="@dimen/my_title_text_size"
                     android:textStyle="bold"
                     android:maxLines="2"
                     android:ellipsize="end" />
@@ -51,7 +51,7 @@
                     android:id="@+id/myRecipeTagsContainer"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
+                    android:layout_marginTop="@dimen/my_tags_margin_top"
                     android:orientation="horizontal"
                     android:visibility="gone">
 
@@ -59,15 +59,15 @@
                         android:id="@+id/myRecipeTag1"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginEnd="8dp"
+                        android:layout_marginEnd="@dimen/row_reaction_text_margin_start"
                         android:background="@drawable/bg_tag_chip"
-                        android:paddingStart="16dp"
-                        android:paddingTop="8dp"
-                        android:paddingEnd="16dp"
-                        android:paddingBottom="8dp"
+                        android:paddingStart="@dimen/my_tag_padding_horizontal"
+                        android:paddingTop="@dimen/my_tag_padding_vertical"
+                        android:paddingEnd="@dimen/my_tag_padding_horizontal"
+                        android:paddingBottom="@dimen/my_tag_padding_vertical"
                         android:text=""
                         android:textColor="#FFFFFF"
-                        android:textSize="14sp"
+                        android:textSize="@dimen/my_tag_text_size"
                         android:visibility="gone" />
 
                     <TextView
@@ -75,23 +75,23 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:background="@drawable/bg_tag_chip"
-                        android:paddingStart="16dp"
-                        android:paddingTop="8dp"
-                        android:paddingEnd="16dp"
-                        android:paddingBottom="8dp"
+                        android:paddingStart="@dimen/my_tag_padding_horizontal"
+                        android:paddingTop="@dimen/my_tag_padding_vertical"
+                        android:paddingEnd="@dimen/my_tag_padding_horizontal"
+                        android:paddingBottom="@dimen/my_tag_padding_vertical"
                         android:text=""
                         android:textColor="#FFFFFF"
-                        android:textSize="14sp"
+                        android:textSize="@dimen/my_tag_text_size"
                         android:visibility="gone" />
 
                     <TextView
                         android:id="@+id/myRecipeMoreTags"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="10dp"
+                        android:layout_marginStart="@dimen/my_tag_more_margin_start"
                         android:text=""
                         android:textColor="#666666"
-                        android:textSize="14sp"
+                        android:textSize="@dimen/my_tag_text_size"
                         android:layout_gravity="center_vertical"
                         android:visibility="gone" />
                 </LinearLayout>
@@ -99,7 +99,7 @@
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="22dp"
+                    android:layout_marginTop="@dimen/my_stats_margin_top"
                     android:orientation="horizontal">
 
                     <TextView
@@ -108,16 +108,16 @@
                         android:layout_height="wrap_content"
                         android:text="217 likes"
                         android:textColor="#666666"
-                        android:textSize="14sp" />
+                        android:textSize="@dimen/my_tag_text_size" />
 
                     <TextView
                         android:id="@+id/myRecipeComments"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="28dp"
+                        android:layout_marginStart="@dimen/my_stats_spacing"
                         android:text="38 comments"
                         android:textColor="#666666"
-                        android:textSize="14sp" />
+                        android:textSize="@dimen/my_tag_text_size" />
                 </LinearLayout>
             </LinearLayout>
         </LinearLayout>
@@ -125,23 +125,24 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="22dp"
+            android:layout_marginTop="@dimen/my_action_row_margin_top"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:spacing="10dp">
+            android:spacing="@dimen/my_action_button_spacing">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/myRecipeViewBtn"
                 android:layout_width="0dp"
-                android:layout_height="52dp"
-                android:layout_marginEnd="10dp"
+                android:layout_height="wrap_content"
+                android:minHeight="@dimen/my_action_button_height"
+                android:layout_marginEnd="@dimen/my_action_button_spacing"
                 android:layout_weight="1"
                 android:background="@drawable/bg_view_button"
                 android:padding="0dp"
                 android:text="view"
                 android:textAllCaps="false"
                 android:textColor="#6D6D6D"
-                android:textSize="16sp"
+                android:textSize="@dimen/my_action_button_text_size"
                 android:maxLines="1"
                 android:ellipsize="end"
                 app:backgroundTint="@null"
@@ -149,19 +150,20 @@
                 app:icon="@drawable/ic_eye"
                 app:iconTint="#6D6D6D"
                 app:iconGravity="textStart"
-                app:iconPadding="8dp" />
+                app:iconPadding="@dimen/my_action_icon_padding" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/myRecipeEditBtn"
                 android:layout_width="0dp"
-                android:layout_height="52dp"
+                android:layout_height="wrap_content"
+                android:minHeight="@dimen/my_action_button_height"
                 android:layout_weight="1"
-                android:layout_marginStart="10dp"
-                android:layout_marginEnd="10dp"
+                android:layout_marginStart="@dimen/my_action_button_spacing"
+                android:layout_marginEnd="@dimen/my_action_button_spacing"
                 android:text="edit"
                 android:textAllCaps="false"
                 android:textColor="#FFFFFF"
-                android:textSize="16sp"
+                android:textSize="@dimen/my_action_button_text_size"
                 android:background="@drawable/bg_login_button"
                 android:padding="0dp"
                 android:maxLines="1"
@@ -171,18 +173,19 @@
                 app:icon="@drawable/ic_pencil_edit_button"
                 app:iconTint="#FFFFFF"
                 app:iconGravity="textStart"
-                app:iconPadding="8dp" />
+                app:iconPadding="@dimen/my_action_icon_padding" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/myRecipeDeleteBtn"
                 android:layout_width="0dp"
-                android:layout_height="52dp"
+                android:layout_height="wrap_content"
+                android:minHeight="@dimen/my_action_button_height"
                 android:layout_weight="1"
-                android:layout_marginStart="10dp"
+                android:layout_marginStart="@dimen/my_action_button_spacing"
                 android:text="delete"
                 android:textAllCaps="false"
                 android:textColor="#FF5B5B"
-                android:textSize="16sp"
+                android:textSize="@dimen/my_action_button_text_size"
                 android:background="@drawable/bg_delete_button"
                 android:padding="0dp"
                 android:maxLines="1"
@@ -192,7 +195,7 @@
                 app:icon="@drawable/ic_garbage_delete_button"
                 app:iconTint="#FF5B5B"
                 app:iconGravity="textStart"
-                app:iconPadding="8dp" />
+                app:iconPadding="@dimen/my_action_icon_padding" />
         </LinearLayout>
 
     </LinearLayout>

@@ -9,7 +9,7 @@
     <View
         android:id="@+id/headerBackground"
         android:layout_width="0dp"
-        android:layout_height="120dp"
+        android:layout_height="@dimen/header_height"
         android:background="@drawable/bg_home_header_gradient"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -17,10 +17,10 @@
 
     <ImageView
         android:id="@+id/backBtn"
-        android:layout_width="28dp"
-        android:layout_height="28dp"
-        android:layout_marginStart="20dp"
-        android:layout_marginTop="60dp"
+        android:layout_width="@dimen/header_icon_size"
+        android:layout_height="@dimen/header_icon_size"
+        android:layout_marginStart="@dimen/header_icon_margin_start"
+        android:layout_marginTop="@dimen/header_icon_margin_top"
         android:src="@drawable/ic_arrow_back"
         android:contentDescription="@null"
         app:tint="#FFFFFF"
@@ -31,10 +31,10 @@
         android:id="@+id/pageTitleTv"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
+        android:layout_marginStart="@dimen/header_title_margin_start"
         android:text="Edit Profile"
         android:textColor="#FFFFFF"
-        android:textSize="24sp"
+        android:textSize="@dimen/header_title_text_size_medium"
         android:textStyle="bold"
         app:layout_constraintStart_toEndOf="@id/backBtn"
         app:layout_constraintTop_toTopOf="@id/backBtn"
@@ -43,18 +43,20 @@
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/profileSaveBtn"
-        android:layout_width="84dp"
-        android:layout_height="42dp"
-        android:layout_marginEnd="16dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:minHeight="@dimen/profile_action_button_height"
+        android:minWidth="@dimen/profile_action_button_min_width"
+        android:layout_marginEnd="@dimen/profile_action_margin_end"
         android:text="save"
         android:textAllCaps="false"
         android:textColor="#FFFFFF"
-        android:textSize="16sp"
+        android:textSize="@dimen/action_button_text_size"
         android:textStyle="bold"
         android:background="@drawable/bg_small_save_button"
         android:padding="0dp"
         app:backgroundTint="@null"
-        app:cornerRadius="21dp"
+        app:cornerRadius="@dimen/profile_action_button_radius"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@id/backBtn"
         app:layout_constraintBottom_toBottomOf="@id/backBtn" />
@@ -72,84 +74,87 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingStart="24dp"
-            android:paddingTop="28dp"
-            android:paddingEnd="24dp"
-            android:paddingBottom="32dp">
+            android:paddingStart="@dimen/form_padding_horizontal"
+            android:paddingTop="@dimen/profile_form_padding_top"
+            android:paddingEnd="@dimen/form_padding_horizontal"
+            android:paddingBottom="@dimen/form_padding_bottom">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@drawable/bg_profile_info_email_card"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="@dimen/profile_card_padding">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Email"
                     android:textColor="#8C8C8C"
-                    android:textSize="16sp" />
+                    android:textSize="@dimen/label_text_size" />
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/editProfileEmailEt"
                     android:layout_width="match_parent"
-                    android:layout_height="52dp"
-                    android:layout_marginTop="10dp"
+                    android:layout_height="wrap_content"
+                    android:minHeight="@dimen/profile_input_height"
+                    android:layout_marginTop="@dimen/profile_input_margin_top"
                     android:enabled="false"
                     android:background="@drawable/bg_recipe_email_input"
                     android:inputType="textEmailAddress"
-                    android:paddingStart="14dp"
-                    android:paddingEnd="14dp"
+                    android:paddingStart="@dimen/profile_input_padding_horizontal"
+                    android:paddingEnd="@dimen/profile_input_padding_horizontal"
                     android:textColor="#111111" />
             </LinearLayout>
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="18dp"
+                android:layout_marginTop="@dimen/profile_section_margin_top"
                 android:background="@drawable/bg_profile_info_card"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="@dimen/profile_card_padding">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Current Password"
                     android:textColor="#8C8C8C"
-                    android:textSize="16sp" />
+                    android:textSize="@dimen/label_text_size" />
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/editProfileCurrentPasswordEt"
                     android:layout_width="match_parent"
-                    android:layout_height="52dp"
-                    android:layout_marginTop="10dp"
+                    android:layout_height="wrap_content"
+                    android:minHeight="@dimen/profile_input_height"
+                    android:layout_marginTop="@dimen/profile_input_margin_top"
                     android:background="@drawable/bg_recipe_input"
                     android:hint="Enter current password"
                     android:inputType="textPassword"
-                    android:paddingStart="14dp"
-                    android:paddingEnd="14dp"
+                    android:paddingStart="@dimen/profile_input_padding_horizontal"
+                    android:paddingEnd="@dimen/profile_input_padding_horizontal"
                     android:textColor="#111111"
                     android:textColorHint="#8C8C8C" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
+                    android:layout_marginTop="@dimen/profile_field_label_margin_top"
                     android:text="New Password"
                     android:textColor="#8C8C8C"
-                    android:textSize="16sp" />
+                    android:textSize="@dimen/label_text_size" />
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/editProfileNewPasswordEt"
                     android:layout_width="match_parent"
-                    android:layout_height="52dp"
-                    android:layout_marginTop="10dp"
+                    android:layout_height="wrap_content"
+                    android:minHeight="@dimen/profile_input_height"
+                    android:layout_marginTop="@dimen/profile_input_margin_top"
                     android:background="@drawable/bg_recipe_input"
                     android:hint="Enter new password"
                     android:inputType="textPassword"
-                    android:paddingStart="14dp"
-                    android:paddingEnd="14dp"
+                    android:paddingStart="@dimen/profile_input_padding_horizontal"
+                    android:paddingEnd="@dimen/profile_input_padding_horizontal"
                     android:textColor="#111111"
                     android:textColorHint="#8C8C8C" />
             </LinearLayout>
@@ -157,101 +162,104 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="18dp"
+                android:layout_marginTop="@dimen/profile_section_margin_top"
                 android:background="@drawable/bg_profile_info_card"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="@dimen/profile_card_padding">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Username"
                     android:textColor="#8C8C8C"
-                    android:textSize="16sp" />
+                    android:textSize="@dimen/label_text_size" />
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/editProfileUsernameEt"
                     android:layout_width="match_parent"
-                    android:layout_height="52dp"
-                    android:layout_marginTop="10dp"
+                    android:layout_height="wrap_content"
+                    android:minHeight="@dimen/profile_input_height"
+                    android:layout_marginTop="@dimen/profile_input_margin_top"
                     android:background="@drawable/bg_recipe_input"
-                    android:paddingStart="14dp"
-                    android:paddingEnd="14dp"
+                    android:paddingStart="@dimen/profile_input_padding_horizontal"
+                    android:paddingEnd="@dimen/profile_input_padding_horizontal"
                     android:textColor="#111111" />
             </LinearLayout>
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="18dp"
+                android:layout_marginTop="@dimen/profile_section_margin_top"
                 android:background="@drawable/bg_profile_info_card"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="@dimen/profile_card_padding">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="First Name"
                     android:textColor="#8C8C8C"
-                    android:textSize="16sp" />
+                    android:textSize="@dimen/label_text_size" />
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/editProfileFirstNameEt"
                     android:layout_width="match_parent"
-                    android:layout_height="52dp"
-                    android:layout_marginTop="10dp"
+                    android:layout_height="wrap_content"
+                    android:minHeight="@dimen/profile_input_height"
+                    android:layout_marginTop="@dimen/profile_input_margin_top"
                     android:background="@drawable/bg_recipe_input"
-                    android:paddingStart="14dp"
-                    android:paddingEnd="14dp"
+                    android:paddingStart="@dimen/profile_input_padding_horizontal"
+                    android:paddingEnd="@dimen/profile_input_padding_horizontal"
                     android:textColor="#111111" />
             </LinearLayout>
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="18dp"
+                android:layout_marginTop="@dimen/profile_section_margin_top"
                 android:background="@drawable/bg_profile_info_card"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="@dimen/profile_card_padding">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Last Name"
                     android:textColor="#8C8C8C"
-                    android:textSize="16sp" />
+                    android:textSize="@dimen/label_text_size" />
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/editProfileLastNameEt"
                     android:layout_width="match_parent"
-                    android:layout_height="52dp"
-                    android:layout_marginTop="10dp"
+                    android:layout_height="wrap_content"
+                    android:minHeight="@dimen/profile_input_height"
+                    android:layout_marginTop="@dimen/profile_input_margin_top"
                     android:background="@drawable/bg_recipe_input"
-                    android:paddingStart="14dp"
-                    android:paddingEnd="14dp"
+                    android:paddingStart="@dimen/profile_input_padding_horizontal"
+                    android:paddingEnd="@dimen/profile_input_padding_horizontal"
                     android:textColor="#111111" />
             </LinearLayout>
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="18dp"
+                android:layout_marginTop="@dimen/profile_section_margin_top"
                 android:background="@drawable/bg_profile_info_card"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="@dimen/profile_card_padding">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Upload Photo"
                     android:textColor="#8C8C8C"
-                    android:textSize="16sp" />
+                    android:textSize="@dimen/label_text_size" />
 
                 <FrameLayout
                     android:id="@+id/uploadPhotoBox"
                     android:layout_width="match_parent"
-                    android:layout_height="200dp"
-                    android:layout_marginTop="10dp"
+                    android:layout_height="@dimen/profile_upload_photo_height"
+                    android:layout_marginTop="@dimen/profile_input_margin_top"
                     android:background="@drawable/bg_recipe_input">
 
                     <ImageView
@@ -263,8 +271,8 @@
 
                     <ImageView
                         android:id="@+id/editProfileCameraIcon"
-                        android:layout_width="28dp"
-                        android:layout_height="28dp"
+                        android:layout_width="@dimen/profile_camera_icon_size"
+                        android:layout_height="@dimen/profile_camera_icon_size"
                         android:layout_gravity="center"
                         android:src="@android:drawable/ic_menu_camera"
                         android:tint="#7A7A7A"
@@ -277,7 +285,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
-                android:layout_marginTop="20dp"
+                android:layout_marginTop="@dimen/progress_margin_top"
                 android:visibility="gone" />
 
         </LinearLayout>

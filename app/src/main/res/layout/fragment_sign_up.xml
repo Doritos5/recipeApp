@@ -10,16 +10,16 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="24dp">
+        android:padding="@dimen/signup_padding">
 
         <TextView
             android:id="@+id/titleTv"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="@dimen/signup_title_margin_top"
             android:text="Recipe Share"
             android:textColor="#FFFFFF"
-            android:textSize="30sp"
+            android:textSize="@dimen/signup_title_text_size"
             android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.0"
@@ -30,10 +30,10 @@
             android:id="@+id/subtitleTv"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="@dimen/signup_subtitle_margin_top"
             android:text="Sign up to view special recipes of your choice. Please fill the details below"
             android:textColor="#FFFFFF"
-            android:textSize="16sp"
+            android:textSize="@dimen/signup_subtitle_text_size"
             app:layout_constraintTop_toBottomOf="@id/titleTv"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
@@ -43,7 +43,7 @@
             layout="@layout/item_signup_field"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="28dp"
+            android:layout_marginTop="@dimen/signup_first_section_margin_top"
             app:layout_constraintTop_toBottomOf="@id/subtitleTv"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
@@ -53,7 +53,7 @@
             layout="@layout/item_signup_field"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="@dimen/signup_section_margin_top"
             app:layout_constraintTop_toBottomOf="@id/firstNameContainer"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
@@ -63,7 +63,7 @@
             layout="@layout/item_signup_field"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="@dimen/signup_section_margin_top"
             app:layout_constraintTop_toBottomOf="@id/lastNameContainer"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
@@ -73,7 +73,7 @@
             layout="@layout/item_signup_field"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="@dimen/signup_section_margin_top"
             app:layout_constraintTop_toBottomOf="@id/usernameContainer"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
@@ -83,7 +83,7 @@
             layout="@layout/item_signup_password_field"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="@dimen/signup_section_margin_top"
             app:layout_constraintTop_toBottomOf="@id/emailContainer"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
@@ -91,13 +91,14 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/signUpBtn"
             android:layout_width="0dp"
-            android:layout_height="56dp"
-            android:layout_marginTop="28dp"
-            android:layout_marginBottom="24dp"
+            android:layout_height="wrap_content"
+            android:minHeight="@dimen/signup_button_height"
+            android:layout_marginTop="@dimen/signup_button_margin_top"
+            android:layout_marginBottom="@dimen/signup_button_margin_bottom"
             android:text="Sign Up"
             android:textAllCaps="false"
             android:textColor="#3D3D3D"
-            android:textSize="18sp"
+            android:textSize="@dimen/signup_button_text_size"
             android:textStyle="bold"
             android:background="@drawable/bg_signup_button"
             android:insetTop="0dp"

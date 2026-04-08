@@ -5,9 +5,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="18dp"
-    app:cardCornerRadius="22dp"
-    app:cardElevation="4dp"
+    android:layout_marginBottom="@dimen/card_margin_bottom"
+    app:cardCornerRadius="@dimen/card_radius"
+    app:cardElevation="@dimen/card_elevation"
     app:cardBackgroundColor="#FFFFFF">
 
     <LinearLayout
@@ -19,16 +19,16 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:paddingStart="16dp"
-            android:paddingTop="16dp"
-            android:paddingEnd="16dp"
-            android:paddingBottom="12dp"
+            android:paddingStart="@dimen/row_padding_horizontal"
+            android:paddingTop="@dimen/row_padding_top"
+            android:paddingEnd="@dimen/row_padding_horizontal"
+            android:paddingBottom="@dimen/row_padding_bottom"
             android:gravity="center_vertical">
 
             <ImageView
                 android:id="@+id/recipeAuthorAvatar"
-                android:layout_width="46dp"
-                android:layout_height="46dp"
+                android:layout_width="@dimen/row_avatar_size"
+                android:layout_height="@dimen/row_avatar_size"
                 android:scaleType="centerCrop"
                 android:background="@drawable/bg_login_logo_circle"
                 tools:src="@tools:sample/avatars" />
@@ -37,7 +37,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:layout_marginStart="12dp">
+                android:layout_marginStart="@dimen/field_spacing_horizontal">
 
                 <TextView
                     android:id="@+id/recipeAuthorName"
@@ -45,17 +45,17 @@
                     android:layout_height="wrap_content"
                     android:text="Amanda Hill"
                     android:textColor="#111111"
-                    android:textSize="15sp"
+                    android:textSize="@dimen/row_author_text_size"
                     android:textStyle="bold" />
 
                 <TextView
                     android:id="@+id/recipeDate"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
+                    android:layout_marginTop="@dimen/row_date_margin_top"
                     android:text="12/08/2025"
                     android:textColor="#666666"
-                    android:textSize="13sp" />
+                    android:textSize="@dimen/row_date_text_size" />
             </LinearLayout>
 
         </LinearLayout>
@@ -63,7 +63,7 @@
         <ImageView
             android:id="@+id/recipeRowImage"
             android:layout_width="match_parent"
-            android:layout_height="260dp"
+            android:layout_height="@dimen/row_image_height"
             android:scaleType="centerCrop"
             android:background="#EEEEEE"
             tools:src="@tools:sample/backgrounds/scenic" />
@@ -72,15 +72,15 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:paddingStart="16dp"
-            android:paddingTop="14dp"
-            android:paddingEnd="16dp"
+            android:paddingStart="@dimen/row_padding_horizontal"
+            android:paddingTop="@dimen/row_reaction_padding_top"
+            android:paddingEnd="@dimen/row_padding_horizontal"
             android:gravity="center_vertical">
 
             <ImageView
                 android:id="@+id/recipeLikeIcon"
-                android:layout_width="22dp"
-                android:layout_height="22dp"
+                android:layout_width="@dimen/row_reaction_icon_size"
+                android:layout_height="@dimen/row_reaction_icon_size"
                 android:src="@drawable/ic_heart_custom"
                 android:contentDescription="@null" />
 
@@ -88,16 +88,16 @@
                 android:id="@+id/recipeLikesCount"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
+                android:layout_marginStart="@dimen/row_reaction_text_margin_start"
                 android:text="217"
                 android:textColor="#222222"
-                android:textSize="15sp" />
+                android:textSize="@dimen/row_author_text_size" />
 
             <ImageView
                 android:id="@+id/recipeCommentIcon"
-                android:layout_width="22dp"
-                android:layout_height="22dp"
-                android:layout_marginStart="28dp"
+                android:layout_width="@dimen/row_reaction_icon_size"
+                android:layout_height="@dimen/row_reaction_icon_size"
+                android:layout_marginStart="@dimen/row_reaction_spacing"
                 android:src="@drawable/ic_comment_custom"
                 android:contentDescription="@null" />
 
@@ -105,35 +105,35 @@
                 android:id="@+id/recipeCommentsCount"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
+                android:layout_marginStart="@dimen/row_reaction_text_margin_start"
                 android:text="38"
                 android:textColor="#222222"
-                android:textSize="15sp" />
+                android:textSize="@dimen/row_author_text_size" />
         </LinearLayout>
 
         <TextView
             android:id="@+id/recipeRowTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingStart="16dp"
-            android:paddingTop="10dp"
-            android:paddingEnd="16dp"
+            android:paddingStart="@dimen/row_padding_horizontal"
+            android:paddingTop="@dimen/row_title_padding_top"
+            android:paddingEnd="@dimen/row_padding_horizontal"
             android:text="Classic Pizza Margarita"
             android:textColor="#111111"
-            android:textSize="18sp"
+            android:textSize="@dimen/row_title_text_size"
             android:textStyle="bold" />
 
         <TextView
             android:id="@+id/recipeRowInstructions"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingStart="16dp"
-            android:paddingTop="8dp"
-            android:paddingEnd="16dp"
-            android:paddingBottom="16dp"
+            android:paddingStart="@dimen/row_padding_horizontal"
+            android:paddingTop="@dimen/row_body_padding_top"
+            android:paddingEnd="@dimen/row_padding_horizontal"
+            android:paddingBottom="@dimen/row_body_padding_bottom"
             android:text="view all 38 comments"
             android:textColor="#777777"
-            android:textSize="14sp" />
+            android:textSize="@dimen/row_body_text_size" />
 
         <ImageButton
             android:id="@+id/recipeRowEditBtn"
