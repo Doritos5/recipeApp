@@ -63,4 +63,6 @@
 
     <!-- Default empty string -->
     <string name="empty"></string>
+
+    <string name="likes_count">%1$d Likes</string>
 </resources>

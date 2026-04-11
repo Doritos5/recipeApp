@@ -19,7 +19,9 @@ import javax.inject.Singleton
 class RecipeRepository @Inject constructor(
     private val recipeDao: RecipeDao,
     private val firestore: FirebaseFirestore,
-    private val storageService: FirebaseStorageService
+    private val storageService: FirebaseStorageService,
+    private val commentDao: CommentDao,
+    private val likeDao: LikeDao
 ) {
 
     val allRecipes: LiveData<List<Recipe>> = recipeDao.getAllRecipes()
@@ -107,7 +109,9 @@ class RecipeRepository @Inject constructor(
             imageRemoteUrl = doc.getString("imageRemoteUrl"),
             latitude = doc.getDouble("latitude") ?: 0.0,
             longitude = doc.getDouble("longitude") ?: 0.0,
-            tags = tags
+            tags = tags,
+            likesCount = doc.getLong("likesCount")?.toInt() ?: 0,
+            commentsCount = doc.getLong("commentsCount")?.toInt() ?: 0
         )
 
         return normalizeRecipe(recipe)
@@ -156,7 +160,9 @@ class RecipeRepository @Inject constructor(
             authorId = "API",
             authorName = "API",
             createdAt = System.currentTimeMillis(),
-            tags = emptyList()
+            tags = emptyList(),
+            likesCount = 0,
+            commentsCount = 0
         )
     }
 
@@ -173,7 +179,7 @@ class RecipeRepository @Inject constructor(
                 .trim()
                 .ifEmpty { "" }
 
-            listOf(name, username, fullName)
+            listOf(name, fullName, username)
                 .firstOrNull { !it.isNullOrBlank() }
                 ?: fallback
         } catch (e: Exception) {
@@ -191,9 +197,20 @@ class RecipeRepository @Inject constructor(
                 val apiResponse = RetrofitClient.api.getRecipes().execute()
 
                 if (apiResponse.isSuccessful) {
+                    val localRecipesMap = recipeDao.getAllRecipesList().associateBy { it.id }
                     val rawList = apiResponse.body()?.meals
                     val processedList = rawList?.map { apiRecipe ->
-                        normalizeRecipe(mapApiRecipe(apiRecipe))
+                        val localInfo = localRecipesMap[apiRecipe.id]
+                        val mapped = mapApiRecipe(apiRecipe)
+                        val finalMapped = if (localInfo != null) {
+                            mapped.copy(
+                                likesCount = localInfo.likesCount,
+                                commentsCount = localInfo.commentsCount
+                            )
+                        } else {
+                            mapped
+                        }
+                        normalizeRecipe(finalMapped)
                     }
                     processedList?.let {
                         recipeDao.insertAll(it)
@@ -390,6 +407,214 @@ class RecipeRepository @Inject constructor(
                 } catch (e: Exception) {
                     Log.e("RECIPE_TEST", "Failed to delete from Firebase: ${e.message}")
                 }
+            }
+        }
+    }
+
+    suspend fun toggleLike(recipeId: String, userId: String) {
+        withContext(Dispatchers.IO) {
+            try {
+                val likeRef = firestore.collection("recipes").document(recipeId)
+                    .collection("likes").document(userId)
+
+                val doc = likeRef.get().await()
+                if (doc.exists()) {
+                    likeRef.delete().await()
+                    likeDao.deleteLike(recipeId, userId)
+                } else {
+                    likeRef.set(mapOf("timestamp" to System.currentTimeMillis())).await()
+                    likeDao.insert(com.example.recipeapp.model.recipes.Like(recipeId = recipeId, userId = userId))
+                }
+
+                // Update aggregate count
+                val likesSnapshot = firestore.collection("recipes").document(recipeId)
+                    .collection("likes").get().await()
+                val count = likesSnapshot.size()
+
+                try {
+                    firestore.collection("recipes").document(recipeId)
+                        .update("likesCount", count).await()
+                } catch (e: Exception) {
+                    Log.w("RECIPE_TEST", "Failed to update likesCount in Firestore (may be an API recipe): ${e.message}")
+                }
+
+                // Update local Room entity
+                val localRecipe = recipeDao.getRecipeByIdOnce(recipeId)
+                if (localRecipe != null) {
+                    val updated = localRecipe.copy(likesCount = count)
+                    recipeDao.update(updated)
+                }
+            } catch (e: Exception) {
+                Log.e("RECIPE_TEST", "Error toggling like: ${e.message}")
+            }
+        }
+    }
+
+    suspend fun addComment(recipeId: String, userId: String, text: String, userName: String) {
+        withContext(Dispatchers.IO) {
+            try {
+                val resolvedName = resolveAuthorName(userId, userName.ifBlank { "Recipe User" })
+
+                val commentRef = firestore.collection("recipes").document(recipeId)
+                    .collection("comments").document()
+
+                val commentData = mapOf(
+                    "userId" to userId,
+                    "userName" to resolvedName,
+                    "text" to text,
+                    "timestamp" to System.currentTimeMillis()
+                )
+                commentRef.set(commentData).await()
+
+                // Update aggregate count
+                val commentsSnapshot = firestore.collection("recipes").document(recipeId)
+                    .collection("comments").get().await()
+                val count = commentsSnapshot.size()
+
+                try {
+                    firestore.collection("recipes").document(recipeId)
+                        .update("commentsCount", count).await()
+                } catch (e: Exception) {
+                    Log.w("RECIPE_TEST", "Failed to update commentsCount in Firestore: ${e.message}")
+                }
+
+                // Update local Room entity
+                val localRecipe = recipeDao.getRecipeByIdOnce(recipeId)
+                if (localRecipe != null) {
+                    val updated = localRecipe.copy(commentsCount = count)
+                    recipeDao.update(updated)
+                }
+            } catch (e: Exception) {
+                Log.e("RECIPE_TEST", "Error adding comment: ${e.message}")
+            }
+        }
+    }
+
+    fun getCommentsForRecipe(recipeId: String): LiveData<List<com.example.recipeapp.model.recipes.Comment>> {
+        return commentDao.getCommentsForRecipe(recipeId)
+    }
+
+    suspend fun editComment(recipeId: String, commentId: String, newText: String) {
+        withContext(Dispatchers.IO) {
+            try {
+                firestore.collection("recipes").document(recipeId)
+                    .collection("comments").document(commentId)
+                    .update("text", newText).await()
+            } catch (e: Exception) {
+                Log.w("RECIPE_TEST", "Failed to update comment text in Firestore: ${e.message}")
+            }
+            try {
+                commentDao.updateText(commentId, newText)
+            } catch (e: Exception) {
+                Log.e("RECIPE_TEST", "Error editing comment locally: ${e.message}")
+            }
+        }
+    }
+
+    suspend fun deleteComment(recipeId: String, commentId: String) {
+        withContext(Dispatchers.IO) {
+            try {
+                firestore.collection("recipes").document(recipeId)
+                    .collection("comments").document(commentId).delete().await()
+
+                // Update aggregate count
+                val commentsSnapshot = firestore.collection("recipes").document(recipeId)
+                    .collection("comments").get().await()
+                val count = commentsSnapshot.size()
+
+                try {
+                    firestore.collection("recipes").document(recipeId)
+                        .update("commentsCount", count).await()
+                } catch (e: Exception) {
+                    Log.w("RECIPE_TEST", "Failed to update commentsCount in Firestore: ${e.message}")
+                }
+
+                commentDao.deleteById(commentId)
+
+                // Update local Recipe entity
+                val localRecipe = recipeDao.getRecipeByIdOnce(recipeId)
+                if (localRecipe != null) {
+                    val updated = localRecipe.copy(commentsCount = count)
+                    recipeDao.update(updated)
+                }
+            } catch (e: Exception) {
+                Log.e("RECIPE_TEST", "Error deleting comment: ${e.message}")
+            }
+        }
+    }
+
+    suspend fun refreshComments(recipeId: String) {
+        withContext(Dispatchers.IO) {
+            try {
+                val snapshot = firestore.collection("recipes").document(recipeId)
+                    .collection("comments").get().await()
+
+                val commentsList = snapshot.documents.map { doc ->
+                    com.example.recipeapp.model.recipes.Comment(
+                        id = doc.id,
+                        recipeId = recipeId,
+                        userId = doc.getString("userId") ?: "",
+                        userName = doc.getString("userName") ?: "",
+                        text = doc.getString("text") ?: "",
+                        timestamp = doc.getLong("timestamp") ?: 0L
+                    )
+                }
+
+                // Insert or update comments in Room
+                commentsList.let {
+                    commentDao.insertAll(it)
+                    Log.d("RECIPE_TEST", "Saved ${it.size} comments for recipeId='$recipeId'")
+                }
+
+                // Update aggregate count
+                val count = commentsList.size
+                try {
+                    firestore.collection("recipes").document(recipeId)
+                        .update("commentsCount", count).await()
+                } catch (e: Exception) {
+                    Log.w("RECIPE_TEST", "Failed to update commentsCount in Firestore: ${e.message}")
+                }
+
+                // Update local Recipe entity
+                val localRecipe = recipeDao.getRecipeByIdOnce(recipeId)
+                if (localRecipe != null) {
+                    val updated = localRecipe.copy(commentsCount = count)
+                    recipeDao.update(updated)
+                }
+            } catch (e: Exception) {
+                Log.e("RECIPE_TEST", "Error refreshing comments: ${e.message}")
+            }
+        }
+    }
+
+    fun isLiked(recipeId: String, userId: String): LiveData<Boolean> {
+        return likeDao.isRecipeLikedByUser(recipeId, userId)
+    }
+
+    suspend fun checkIfLiked(recipeId: String, userId: String): Boolean {
+        return withContext(Dispatchers.IO) {
+            try {
+                val doc = firestore.collection("recipes").document(recipeId)
+                    .collection("likes").document(userId).get().await()
+                doc.exists()
+            } catch (e: Exception) {
+                Log.e("RECIPE_TEST", "Error checking like status: ${e.message}")
+                false
+            }
+        }
+    }
+
+    suspend fun refreshLikeStatus(recipeId: String, userId: String) {
+        withContext(Dispatchers.IO) {
+            try {
+                val isLiked = checkIfLiked(recipeId, userId)
+                if (isLiked) {
+                    likeDao.insert(com.example.recipeapp.model.recipes.Like(recipeId = recipeId, userId = userId))
+                } else {
+                    likeDao.deleteLike(recipeId, userId)
+                }
+            } catch (e: Exception) {
+                Log.e("RECIPE_TEST", "Error refreshing like status: ${e.message}")
             }
         }
     }

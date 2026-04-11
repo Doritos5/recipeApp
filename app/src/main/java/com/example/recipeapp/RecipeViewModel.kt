@@ -32,6 +32,9 @@ class RecipeViewModel @Inject constructor(
     /** Returns the current user's UID or null */
     fun getCurrentUserId(): String? = authManager.getCurrentUserId()
 
+    /** Returns the current user's display name, falling back to Recipe User */
+    fun getCurrentUserName(): String = authManager.getDisplayName() ?: "Recipe User"
+
     /** Returns true if a user is logged in */
     fun isLoggedIn(): Boolean = authManager.isLoggedIn()
 
@@ -166,5 +169,61 @@ class RecipeViewModel @Inject constructor(
     /** Resets the upload state back to Idle (call after handling Success/Error in UI). */
     fun resetUploadState() {
         _uploadState.value = UploadState.Idle
+    }
+
+    // ========================
+    // LIKE & COMMENT
+    // ========================
+
+    fun toggleLike(recipeId: String) {
+        val userId = authManager.getCurrentUserId() ?: return
+        viewModelScope.launch {
+            repository.toggleLike(recipeId, userId)
+        }
+    }
+
+    fun addComment(recipeId: String, text: String, userName: String) {
+        val userId = authManager.getCurrentUserId() ?: return
+        viewModelScope.launch {
+            repository.addComment(recipeId, userId, text, userName)
+            // Refresh comments after adding to ensure list updates
+            repository.refreshComments(recipeId)
+        }
+    }
+
+    fun editComment(recipeId: String, commentId: String, newText: String) {
+        if (!isLoggedIn()) return
+        viewModelScope.launch {
+            repository.editComment(recipeId, commentId, newText)
+        }
+    }
+
+    fun deleteComment(recipeId: String, commentId: String) {
+        if (!isLoggedIn()) return
+        viewModelScope.launch {
+            repository.deleteComment(recipeId, commentId)
+        }
+    }
+
+    fun getCommentsForRecipe(recipeId: String): LiveData<List<com.example.recipeapp.model.recipes.Comment>> {
+        return repository.getCommentsForRecipe(recipeId)
+    }
+
+    fun refreshComments(recipeId: String) {
+        viewModelScope.launch {
+            repository.refreshComments(recipeId)
+        }
+    }
+
+    fun refreshLikeStatus(recipeId: String) {
+        val userId = authManager.getCurrentUserId() ?: return
+        viewModelScope.launch {
+            repository.refreshLikeStatus(recipeId, userId)
+        }
+    }
+
+    fun checkIfLiked(recipeId: String): LiveData<Boolean> {
+        val userId = authManager.getCurrentUserId() ?: return androidx.lifecycle.MutableLiveData(false)
+        return repository.isLiked(recipeId, userId)
     }
 }
