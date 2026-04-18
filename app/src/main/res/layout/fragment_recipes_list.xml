@@ -73,7 +73,7 @@
         android:layout_marginStart="@dimen/list_search_input_margin_start"
         android:layout_marginEnd="@dimen/list_search_input_margin_end"
         android:background="@drawable/bg_home_search"
-        android:hint="search recipes or tags..."
+        android:hint="search recipes"
         android:paddingStart="@dimen/list_search_padding_horizontal"
         android:paddingEnd="@dimen/list_search_padding_horizontal"
         android:textColor="#FFFFFF"

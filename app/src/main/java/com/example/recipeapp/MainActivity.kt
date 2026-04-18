@@ -1,6 +1,9 @@
 package com.example.recipeapp
 
+import android.graphics.BitmapFactory
+import android.net.Uri
 import android.os.Bundle
+import android.util.Base64
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
@@ -21,6 +24,7 @@ import com.example.recipeapp.ui.viewmodel.AuthViewModel
 import com.example.recipeapp.ui.viewmodel.ProfileState
 import com.example.recipeapp.ui.viewmodel.ProfileViewModel
 import com.google.android.material.navigation.NavigationView
+import com.squareup.picasso.Picasso
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -32,6 +36,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var navigationView: NavigationView
     private lateinit var drawerUserName: TextView
     private lateinit var drawerUserSubtitle: TextView
+    private lateinit var drawerProfileImage: ImageView
+    private var lastProfileImageUrl: String? = null
     private val authViewModel: AuthViewModel by viewModels()
     private val profileViewModel: ProfileViewModel by viewModels()
 
@@ -51,6 +57,7 @@ class MainActivity : AppCompatActivity() {
         val closeBtn = headerView.findViewById<ImageView>(R.id.drawerCloseBtn)
         drawerUserName = headerView.findViewById(R.id.drawerUserName)
         drawerUserSubtitle = headerView.findViewById(R.id.drawerUserSubtitle)
+        drawerProfileImage = headerView.findViewById(R.id.drawerProfileImage)
 
         closeBtn.setOnClickListener {
             closeDrawer()
@@ -124,6 +131,7 @@ class MainActivity : AppCompatActivity() {
         } else {
             updateDrawerHeaderFromAuthFallback()
             profileViewModel.loadProfile()
+            lastProfileImageUrl?.let { updateDrawerProfileImage(it) }
         }
     }
 
@@ -151,6 +159,11 @@ class MainActivity : AppCompatActivity() {
                                 else -> ""
                             }
                             updateDrawerHeaderForLoggedIn(state.displayName, subtitle)
+                            updateDrawerProfileImage(state.profileImageUrl)
+                        }
+
+                        is ProfileState.Updated -> {
+                            profileViewModel.loadProfile()
                         }
 
                         else -> {
@@ -198,6 +211,8 @@ class MainActivity : AppCompatActivity() {
     private fun updateDrawerHeaderForGuest() {
         drawerUserName.text = getString(R.string.drawer_guest_name)
         drawerUserSubtitle.text = getString(R.string.drawer_guest_subtitle)
+        lastProfileImageUrl = null
+        drawerProfileImage.setImageResource(R.drawable.icon_account)
     }
 
     private fun updateDrawerHeaderFromAuthFallback() {
@@ -207,11 +222,96 @@ class MainActivity : AppCompatActivity() {
             ?: ""
         val subtitle = userAuthManager.getEmail().orEmpty()
         updateDrawerHeaderForLoggedIn(name, subtitle)
+        updateDrawerProfileImage(userAuthManager.getProfileImageUrl())
     }
 
     private fun updateDrawerHeaderForLoggedIn(displayName: String?, subtitle: String?) {
-        drawerUserName.text = displayName?.takeIf { it.isNotBlank() }.orEmpty()
-        drawerUserSubtitle.text = subtitle?.takeIf { it.isNotBlank() }.orEmpty()
+        val rawName = displayName?.trim()?.replace("\n", " ")?.replace("\r", " ").orEmpty()
+        val nameText = normalizeDisplayName(rawName)
+        val subtitleText = subtitle?.trim()?.replace("\n", " ")?.replace("\r", " ").orEmpty()
+        val normalizedName = nameText.lowercase()
+        val normalizedSubtitle = subtitleText.lowercase()
+        val resolvedSubtitle = if (subtitleText.isNotBlank() && normalizedSubtitle != normalizedName) {
+            subtitleText
+        } else {
+            ""
+        }
+        drawerUserName.text = nameText
+        drawerUserSubtitle.text = resolvedSubtitle
+        drawerUserSubtitle.visibility = if (resolvedSubtitle.isBlank()) android.view.View.GONE else android.view.View.VISIBLE
+    }
+
+    private fun normalizeDisplayName(rawName: String): String {
+        val parts = rawName.split(Regex("\\s+")).filter { it.isNotBlank() }
+        if (parts.isEmpty()) return ""
+        val deDuped = parts.fold(mutableListOf<String>()) { acc, part ->
+            val last = acc.lastOrNull()
+            if (last == null || last.lowercase() != part.lowercase()) {
+                acc.add(part)
+            }
+            acc
+        }
+        val distinct = deDuped.map { it.lowercase() }.distinct()
+        if (distinct.size == 1) return deDuped.first()
+        if (deDuped.size % 2 == 0) {
+            val mid = deDuped.size / 2
+            val firstHalf = deDuped.subList(0, mid)
+            val secondHalf = deDuped.subList(mid, deDuped.size)
+            if (firstHalf.map { it.lowercase() } == secondHalf.map { it.lowercase() }) {
+                return firstHalf.joinToString(" ")
+            }
+        }
+        return deDuped.joinToString(" ")
+    }
+
+    private fun updateDrawerProfileImage(imageUrl: String?) {
+        val resolvedUrl = imageUrl?.takeIf { it.isNotBlank() } ?: lastProfileImageUrl
+        if (resolvedUrl.isNullOrBlank()) {
+            drawerProfileImage.setImageResource(R.drawable.icon_account)
+            return
+        }
+
+        lastProfileImageUrl = resolvedUrl
+
+        when {
+            resolvedUrl.startsWith("data:image") -> {
+                renderBase64Image(resolvedUrl.substringAfter("base64,"))
+            }
+            isProbablyBase64Image(resolvedUrl) -> {
+                renderBase64Image(resolvedUrl)
+            }
+            else -> {
+                val uri = Uri.parse(resolvedUrl)
+                Picasso.get()
+                    .load(uri)
+                    .placeholder(R.drawable.icon_account)
+                    .error(R.drawable.icon_account)
+                    .fit()
+                    .centerCrop()
+                    .into(drawerProfileImage)
+            }
+        }
+    }
+
+    private fun renderBase64Image(base64: String) {
+        try {
+            val bytes = Base64.decode(base64, Base64.NO_WRAP)
+            val bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+            if (bitmap != null) {
+                drawerProfileImage.setImageBitmap(bitmap)
+            } else {
+                drawerProfileImage.setImageResource(R.drawable.icon_account)
+            }
+        } catch (_: Exception) {
+            drawerProfileImage.setImageResource(R.drawable.icon_account)
+        }
+    }
+
+    private fun isProbablyBase64Image(value: String): Boolean {
+        if (value.length < 200) return false
+        return value.all { char ->
+            char.isLetterOrDigit() || char == '+' || char == '/' || char == '=' || char == '\n' || char == '\r'
+        }
     }
 
     fun openDrawer() {
