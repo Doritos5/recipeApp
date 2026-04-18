@@ -19,6 +19,9 @@ interface RecipeDao {
     @Query("SELECT * FROM recipes WHERE authorId = :authorId")
     fun getRecipesByAuthor(authorId: String): LiveData<List<Recipe>>
 
+    @Query("SELECT * FROM recipes")
+    suspend fun getAllRecipesList(): List<Recipe>
+
     // Read single recipe by ID
     @Query("SELECT * FROM recipes WHERE id = :recipeId LIMIT 1")
     fun getRecipeById(recipeId: String): LiveData<Recipe?>

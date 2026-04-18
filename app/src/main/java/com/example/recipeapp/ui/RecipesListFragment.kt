@@ -37,6 +37,7 @@ class RecipesListFragment : Fragment() {
             recipes = emptyList(),
             onRecipeClick = { recipe ->
                 val bundle = Bundle().apply {
+                    putString("id", recipe.id)
                     putString("title", recipe.title)
                     putString("instructions", recipe.instructions.joinToString("\n"))
                     putString("authorName", recipe.authorName)
@@ -51,6 +52,13 @@ class RecipesListFragment : Fragment() {
                     R.id.action_recipeListFragment_to_recipeDetailFragment,
                     bundle
                 )
+            },
+            onLikeClick = { recipe ->
+                if (viewModel.isLoggedIn()) {
+                    viewModel.toggleLike(recipe.id)
+                } else {
+                    android.widget.Toast.makeText(requireContext(), "Please login to like", android.widget.Toast.LENGTH_SHORT).show()
+                }
             }
         )
 

@@ -7,28 +7,38 @@ import android.os.Bundle
 import android.util.Base64
 import android.view.View
 import android.widget.TextView
+import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.recipeapp.R
+import com.example.recipeapp.RecipeViewModel
 import com.example.recipeapp.databinding.FragmentRecipeDetailBinding
 import com.google.android.flexbox.FlexboxLayout
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.squareup.picasso.Picasso
+import dagger.hilt.android.AndroidEntryPoint
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+@AndroidEntryPoint
 class RecipeDetailFragment : Fragment(R.layout.fragment_recipe_detail) {
 
     private var _binding: FragmentRecipeDetailBinding? = null
     private val binding get() = _binding!!
 
+    private val viewModel: RecipeViewModel by viewModels()
+    private lateinit var commentAdapter: CommentAdapter
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         _binding = FragmentRecipeDetailBinding.bind(view)
 
+        val recipeId = arguments?.getString("id").orEmpty()
         val title = arguments?.getString("title").orEmpty()
         val instructions = arguments?.getString("instructions").orEmpty()
         val imageUrl = arguments?.getString("imageUrl")
@@ -44,6 +54,13 @@ class RecipeDetailFragment : Fragment(R.layout.fragment_recipe_detail) {
         binding.detailAuthorTv.text = if (authorName.isNotBlank()) authorName else "Recipe User"
         binding.detailDateTv.text = formatCreatedAt(createdAt)
         binding.ingredientsContentTv.text = formatIngredients(ingredients)
+
+        setupCommentsRecyclerView()
+
+        if (recipeId.isNotEmpty()) {
+            observeLikesAndComments(recipeId)
+            setupInteractions(recipeId)
+        }
 
         // Display tags dynamically
         displayTags(tagsJson)
@@ -83,6 +100,100 @@ class RecipeDetailFragment : Fragment(R.layout.fragment_recipe_detail) {
             }
         } else {
             binding.detailImageIv.setImageResource(R.drawable.ic_launcher_foreground)
+        }
+    }
+
+    private fun setupCommentsRecyclerView() {
+        val currentUserId = viewModel.getCurrentUserId()
+        commentAdapter = CommentAdapter(
+            comments = emptyList(),
+            currentUserId = currentUserId,
+            onEdit = { comment ->
+                showEditCommentDialog(comment)
+            },
+            onDelete = { comment ->
+                showDeleteCommentDialog(comment)
+            }
+        )
+        binding.commentsRecyclerView.apply {
+            layoutManager = LinearLayoutManager(requireContext())
+            adapter = commentAdapter
+        }
+    }
+
+    private fun showEditCommentDialog(comment: com.example.recipeapp.model.recipes.Comment) {
+        val editText = android.widget.EditText(requireContext()).apply {
+            setText(comment.text)
+            setPadding(40, 20, 40, 20)
+        }
+
+        android.app.AlertDialog.Builder(requireContext())
+            .setTitle("Edit Comment")
+            .setView(editText)
+            .setPositiveButton("Save") { _, _ ->
+                val newText = editText.text.toString().trim()
+                if (newText.isNotEmpty()) {
+                    viewModel.editComment(comment.recipeId, comment.id, newText)
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun showDeleteCommentDialog(comment: com.example.recipeapp.model.recipes.Comment) {
+        android.app.AlertDialog.Builder(requireContext())
+            .setTitle("Delete Comment")
+            .setMessage("Are you sure you want to delete this comment?")
+            .setPositiveButton("Delete") { _, _ ->
+                viewModel.deleteComment(comment.recipeId, comment.id)
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun observeLikesAndComments(recipeId: String) {
+        viewModel.getRecipeById(recipeId).observe(viewLifecycleOwner) { recipe ->
+            recipe?.let {
+                binding.detailLikesCountTv.text = getString(R.string.likes_count, it.likesCount)
+            }
+        }
+
+        viewModel.checkIfLiked(recipeId).observe(viewLifecycleOwner) { isLiked ->
+            val heartTint = if (isLiked) {
+                Color.RED
+            } else {
+                Color.parseColor("#757575")
+            }
+            binding.detailLikeBtn.setColorFilter(heartTint)
+        }
+
+        viewModel.getCommentsForRecipe(recipeId).observe(viewLifecycleOwner) { comments ->
+            commentAdapter.setComments(comments)
+        }
+
+        viewModel.refreshComments(recipeId)
+        viewModel.refreshLikeStatus(recipeId)
+    }
+
+    private fun setupInteractions(recipeId: String) {
+        binding.detailLikeBtn.setOnClickListener {
+            if (viewModel.isLoggedIn()) {
+                viewModel.toggleLike(recipeId)
+            } else {
+                Toast.makeText(requireContext(), "Please login to like", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        binding.sendCommentBtn.setOnClickListener {
+            val text = binding.commentInputEt.text.toString().trim()
+            if (text.isEmpty()) return@setOnClickListener
+
+            if (viewModel.isLoggedIn()) {
+                viewModel.addComment(recipeId, text, viewModel.getCurrentUserName())
+                binding.commentInputEt.text.clear()
+            } else {
+                Toast.makeText(requireContext(), "Please login to comment", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 

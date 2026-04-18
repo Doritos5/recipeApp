@@ -65,6 +65,7 @@ class MyRecipesFragment : Fragment() {
                 recipes = emptyList(),
                 onViewClick = { recipe ->
                     val bundle = Bundle().apply {
+                        putString("id", recipe.id)
                         putString("title", recipe.title)
                         putString("instructions", recipe.instructions.joinToString("\n"))
                         putString("authorName", recipe.authorName)

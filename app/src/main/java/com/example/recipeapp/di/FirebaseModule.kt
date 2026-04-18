@@ -2,6 +2,8 @@ package com.example.recipeapp.di
 
 import android.content.Context
 import com.example.recipeapp.data.AppLocalDb
+import com.example.recipeapp.data.CommentDao
+import com.example.recipeapp.data.LikeDao
 import com.example.recipeapp.data.RecipeDao
 import com.example.recipeapp.model.users.UserDao
 import com.google.firebase.auth.FirebaseAuth
@@ -47,8 +49,19 @@ object FirebaseModule {
 
     @Provides
     @Singleton
+    fun provideCommentDao(database: AppLocalDb): CommentDao {
+        return database.commentDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideLikeDao(database: AppLocalDb): LikeDao {
+        return database.likeDao()
+    }
+
+    @Provides
+    @Singleton
     fun provideUserDao(database: AppLocalDb): UserDao {
         return database.userDao()
     }
 }
-

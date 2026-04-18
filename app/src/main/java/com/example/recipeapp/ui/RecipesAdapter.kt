@@ -28,7 +28,8 @@ class RecipesAdapter(
     private var recipes: List<Recipe>,
     private val onRecipeClick: ((Recipe) -> Unit)? = null,
     private val onEditClick: ((Recipe) -> Unit)? = null,
-    private val onDeleteClick: ((Recipe) -> Unit)? = null
+    private val onDeleteClick: ((Recipe) -> Unit)? = null,
+    private val onLikeClick: ((Recipe) -> Unit)? = null
 ) : RecyclerView.Adapter<RecipesAdapter.RecipeViewHolder>() {
 
     // Update the list when data changes
@@ -46,6 +47,7 @@ class RecipesAdapter(
         val dateTextView: TextView = itemView.findViewById(R.id.recipeDate)
         val likesCountTextView: TextView = itemView.findViewById(R.id.recipeLikesCount)
         val commentsCountTextView: TextView = itemView.findViewById(R.id.recipeCommentsCount)
+        val likeIcon: ImageView = itemView.findViewById(R.id.recipeLikeIcon)
 
         val editBtn: ImageButton? = itemView.findViewById(R.id.recipeRowEditBtn)
         val deleteBtn: ImageButton? = itemView.findViewById(R.id.recipeRowDeleteBtn)
@@ -81,9 +83,13 @@ class RecipesAdapter(
 
         holder.authorNameTextView.text = recipe.authorName.ifBlank { "Recipe User" }
         holder.dateTextView.text = formatCreatedAt(recipe.createdAt)
-        holder.likesCountTextView.text = "217"
-        holder.commentsCountTextView.text = "38"
+        holder.likesCountTextView.text = recipe.likesCount.toString()
+        holder.commentsCountTextView.text = recipe.commentsCount.toString()
         holder.instructionsTextView.text = formatInstructionsPreview(recipe.instructions)
+
+        holder.likeIcon.setOnClickListener {
+            onLikeClick?.invoke(recipe)
+        }
 
         // 2. Show/hide action buttons based on callbacks
         if (onEditClick != null) {

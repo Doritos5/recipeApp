@@ -32,5 +32,7 @@ data class Recipe(
     val imageRemoteUrl: String? = null,
     val latitude: Double? = 0.0,
     val longitude: Double? = 0.0,
-    val tags: List<String> = emptyList()
+    val tags: List<String> = emptyList(),
+    val likesCount: Int = 0,
+    val commentsCount: Int = 0
 )
