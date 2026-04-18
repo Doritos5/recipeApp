@@ -5,6 +5,8 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
+import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
@@ -15,6 +17,7 @@ import com.example.recipeapp.RecipeViewModel
 import com.google.gson.Gson
 import dagger.hilt.android.AndroidEntryPoint
 import com.example.recipeapp.MainActivity
+import com.example.recipeapp.model.recipes.Recipe
 
 @AndroidEntryPoint
 class RecipesListFragment : Fragment() {
@@ -22,6 +25,8 @@ class RecipesListFragment : Fragment() {
     private val viewModel: RecipeViewModel by activityViewModels()
     private lateinit var recipesAdapter: RecipesAdapter
     private lateinit var recyclerView: RecyclerView
+    private var allRecipes: List<Recipe> = emptyList()
+    private var currentQuery: String = ""
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -64,9 +69,16 @@ class RecipesListFragment : Fragment() {
 
         recyclerView.adapter = recipesAdapter
 
+        val searchInput: EditText = view.findViewById(R.id.searchRecipesEt)
+        searchInput.addTextChangedListener { text ->
+            currentQuery = text?.toString().orEmpty()
+            applyFilter(currentQuery)
+        }
+
         // 2. Observe LiveData
         viewModel.recipes.observe(viewLifecycleOwner) { recipes ->
-            recipesAdapter.setRecipes(recipes)
+            allRecipes = recipes
+            applyFilter(currentQuery)
             Log.d("RECIPE_TEST", "Updated UI with ${recipes.size} recipes")
         }
 
@@ -84,5 +96,20 @@ class RecipesListFragment : Fragment() {
         }
 
         return view
+    }
+
+    private fun applyFilter(rawQuery: String) {
+        val query = rawQuery.trim()
+        if (query.isEmpty()) {
+            recipesAdapter.setRecipes(allRecipes)
+            return
+        }
+
+        val filtered = allRecipes.filter { recipe ->
+            recipe.title.contains(query, ignoreCase = true) ||
+                (recipe.ingredients?.contains(query, ignoreCase = true) == true) ||
+                recipe.tags.any { tag -> tag.contains(query, ignoreCase = true) }
+        }
+        recipesAdapter.setRecipes(filtered)
     }
 }

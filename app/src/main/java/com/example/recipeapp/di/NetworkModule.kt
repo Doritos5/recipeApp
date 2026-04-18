@@ -1,5 +1,6 @@
 package com.example.recipeapp.di
 
+import com.example.recipeapp.data.NominatimApi
 import com.example.recipeapp.data.OverpassApi
 import dagger.Module
 import dagger.Provides
@@ -9,6 +10,7 @@ import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import javax.inject.Named
 import javax.inject.Singleton
 
 @Module
@@ -32,6 +34,7 @@ object NetworkModule {
 
     @Provides
     @Singleton
+    @Named("overpass")
     fun provideOverpassRetrofit(client: OkHttpClient): Retrofit {
         return Retrofit.Builder()
             .baseUrl("https://overpass-api.de/")
@@ -42,8 +45,24 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideOverpassApi(retrofit: Retrofit): OverpassApi {
+    fun provideOverpassApi(@Named("overpass") retrofit: Retrofit): OverpassApi {
         return retrofit.create(OverpassApi::class.java)
     }
-}
 
+    @Provides
+    @Singleton
+    @Named("nominatim")
+    fun provideNominatimRetrofit(client: OkHttpClient): Retrofit {
+        return Retrofit.Builder()
+            .baseUrl("https://nominatim.openstreetmap.org/")
+            .client(client)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+    }
+
+    @Provides
+    @Singleton
+    fun provideNominatimApi(@Named("nominatim") retrofit: Retrofit): NominatimApi {
+        return retrofit.create(NominatimApi::class.java)
+    }
+}

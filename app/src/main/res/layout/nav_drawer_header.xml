@@ -16,6 +16,8 @@
         android:scaleType="centerCrop"
         android:src="@drawable/ic_launcher_foreground"
         android:background="@drawable/bg_circle_placeholder"
+        android:clipToOutline="true"
+        android:outlineProvider="background"
         android:contentDescription="@null" />
 
     <LinearLayout
@@ -31,7 +33,9 @@
             android:text="@string/empty"
             android:textColor="#FFFFFF"
             android:textSize="@dimen/drawer_name_text_size"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:maxLines="1"
+            android:ellipsize="end" />
 
         <TextView
             android:id="@+id/drawerUserSubtitle"
