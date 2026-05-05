@@ -88,9 +88,8 @@ class MyRecipesAdapter(
             }
         }
 
-        // TODO: Replace placeholder values with real data from Firestore.
-        holder.likesTv.text = "217 likes"
-        holder.commentsTv.text = "38 comments"
+        holder.likesTv.text = "${recipe.likesCount} likes"
+        holder.commentsTv.text = "${recipe.commentsCount} comments"
 
         holder.viewBtn.setOnClickListener { onViewClick(recipe) }
         holder.editBtn.setOnClickListener { onEditClick(recipe) }
